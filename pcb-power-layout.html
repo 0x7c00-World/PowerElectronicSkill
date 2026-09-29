@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCB 与功率布局 · 在电力电子中的运用</title>
+<style>
+:root{
+  --page:#f6f6f4; --card:#ffffff; --text:#1b1b19; --muted:#5f5e5a; --faint:#8a8983;
+  --border:rgba(0,0,0,.12); --border-strong:rgba(0,0,0,.22);
+  --accent:#185FA5; --accent-soft:#E6F1FB;
+  --t1-fill:#F1EFE8; --t1-stroke:#888780; --t1-title:#2C2C2A; --t1-sub:#5F5E5A;
+  --t2-fill:#E6F1FB; --t2-stroke:#185FA5; --t2-title:#0C447C; --t2-sub:#185FA5;
+  --warn:#993C1D; --warn-soft:#FAECE7; --ok:#3B6D11; --ok-soft:#EAF3DE;
+  --code:#f0efeb; --shadow:rgba(0,0,0,.13);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --page:#151514; --card:#1f1f1e; --text:#eceae6; --muted:#a3a29d; --faint:#7d7c77;
+    --border:rgba(255,255,255,.14); --border-strong:rgba(255,255,255,.26);
+    --accent:#85B7EB; --accent-soft:#0C447C;
+    --t1-fill:#2C2C2A; --t1-stroke:#B4B2A9; --t1-title:#D3D1C7; --t1-sub:#B4B2A9;
+    --t2-fill:#0C447C; --t2-stroke:#85B7EB; --t2-title:#B5D4F4; --t2-sub:#85B7EB;
+    --warn:#F0997B; --warn-soft:#4A1B0C; --ok:#97C459; --ok-soft:#173404;
+    --code:#2a2a28; --shadow:rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; padding:36px 24px 80px;
+  background:var(--page); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15px; line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.crumb{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.crumb a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;}
+.crumb a:hover{border-bottom-color:var(--accent);}
+.crumb span{color:var(--faint);margin:0 7px;}
+h1{font-size:27px;font-weight:600;letter-spacing:-.3px;margin:0 0 10px;line-height:1.35;}
+.sub{color:var(--muted);font-size:14.5px;margin:0 0 16px;}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
+.tag{font-size:12px;font-weight:500;padding:4px 11px;border-radius:6px;background:var(--accent-soft);color:var(--accent);}
+h2{font-size:19px;font-weight:600;margin:56px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+h2 .num{color:var(--faint);font-weight:500;margin-right:9px;font-variant-numeric:tabular-nums;}
+h3{font-size:15.5px;font-weight:600;margin:32px 0 10px;}
+h4{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text);}
+p{margin:0 0 14px;}
+ul,ol{padding-left:22px;margin:0 0 14px;}
+li{margin-bottom:7px;}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;
+     background:var(--code);padding:2px 6px;border-radius:4px;}
+.callout{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);
+  border-radius:10px;padding:16px 20px;margin:22px 0;}
+.callout p:last-child{margin-bottom:0;}
+.callout strong{color:var(--accent);}
+.note{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:18px 0;font-size:14px;}
+.note.warn{border-left:3px solid var(--warn);}
+.note.warn b{color:var(--warn);}
+.note.ok{border-left:3px solid var(--ok);}
+.note.ok b{color:var(--ok);}
+.note p:last-child{margin-bottom:0;}
+.chain{display:flex;flex-direction:column;margin:18px 0 6px;}
+.step{display:flex;gap:14px;padding:15px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+.step .b{font-size:14.5px;font-weight:600;margin-bottom:3px;}
+.step .d{font-size:13.5px;color:var(--muted);line-height:1.65;}
+.eq{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:14px 20px;margin:15px 0;
+  font-family:"Cambria Math",Cambria,Georgia,"Times New Roman",serif;font-size:15.5px;line-height:2.1;
+  overflow-x:auto;}
+.eq i{font-style:italic;}
+.eq .lbl{font-family:inherit;font-size:12.5px;color:var(--faint);font-style:normal;}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;}
+th{text-align:left;font-weight:600;font-size:12.5px;letter-spacing:.3px;color:var(--muted);
+   padding:10px 14px;border-bottom:1px solid var(--border-strong);}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card table{margin:0;}
+figure{margin:24px 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 14px 12px;}
+figure svg{display:block;width:100%;height:auto;}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;}
+figcaption{font-size:12.5px;color:var(--faint);margin-top:10px;padding:0 6px;line-height:1.65;}
+figcaption a{color:var(--accent);text-decoration:none;}
+figcaption a:hover{border-bottom:1px solid var(--accent);}
+details{border:1px solid var(--border);border-radius:10px;padding:0 16px;margin-bottom:10px;background:var(--card);}
+details[open]{padding-bottom:14px;}
+summary{cursor:pointer;font-size:14px;font-weight:600;padding:13px 0;list-style:none;}
+summary::-webkit-details-marker{display:none;}
+summary::before{content:"▸";display:inline-block;margin-right:9px;color:var(--accent);}
+details[open] summary::before{content:"▾";}
+details p{margin:8px 0 0;font-size:14px;color:var(--muted);}
+.formula-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:12px;margin:18px 0;}
+.fc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.fc .h{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:9px;}
+.fc .e{font-family:"Cambria Math",Cambria,Georgia,serif;font-size:14.5px;line-height:2;overflow-x:auto;}
+.reading{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0;}
+.rc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.rc .h{font-size:13.5px;font-weight:600;margin-bottom:6px;}
+.rc .d{font-size:13px;color:var(--muted);line-height:1.6;}
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);}
+footer a{color:var(--accent);text-decoration:none;}
+footer a:hover{border-bottom:1px solid var(--accent);}
+.main a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
+.main a:hover{text-decoration-thickness:2px;}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px;}
+@media (max-width:620px){
+  body{padding:22px 16px 60px;}
+  h1{font-size:21px;}
+  .card{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .card table{min-width:560px;}
+  th,td{padding:9px 10px;}
+  .eq{font-size:14px;padding:12px 14px;}
+  .fc .e{font-size:13px;}
+}
+
+/*TOC-CSS-BEGIN*/
+h2[id],h3[id]{scroll-margin-top:26px;}
+.progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:60;}
+.shell{max-width:1300px;margin:0 auto;}
+.main{min-width:0;}
+.sidenav{display:none;}
+.sidenav-head{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;padding:15px 18px 12px;border-bottom:1px solid var(--border);}
+.sidenav-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:13px 12px 14px 16px;scrollbar-width:thin;}
+.sidenav-body::-webkit-scrollbar{width:7px;}
+.sidenav-body::-webkit-scrollbar-track{background:transparent;}
+.sidenav-body::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px;}
+.toc-title{font-size:14.5px;font-weight:600;}
+.toc-meta{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;}
+.toc-grid{column-count:1;}
+.toc-ch{break-inside:avoid;margin-bottom:13px;}
+.toc-ch:last-child{margin-bottom:0;}
+.toc-ch-link{display:block;font-size:13.5px;font-weight:600;color:var(--text);text-decoration:none;padding:3px 7px;border-radius:6px;line-height:1.5;transition:color .15s,background .15s;}
+.toc-ch-link .n{display:inline-block;min-width:23px;font-size:11.5px;font-weight:600;color:var(--faint);font-variant-numeric:tabular-nums;}
+.toc-ch-link:hover,.toc-ch-link.active{color:var(--accent);background:var(--accent-soft);}
+.toc-ch-link.active .n{color:var(--accent);}
+.toc-sub{display:block;font-size:12.5px;color:var(--muted);text-decoration:none;padding:2.5px 7px 2.5px 24px;border-radius:6px;line-height:1.45;transition:color .15s,background .15s;}
+.toc-sub:hover{color:var(--accent);background:var(--accent-soft);}
+.toc-top{flex:none;display:block;padding:11px 18px;border-top:1px solid var(--border);font-size:13px;color:var(--accent);text-decoration:none;}
+.toc-top:hover{background:var(--accent-soft);}
+@media (min-width:1000px){
+  .shell{display:grid;grid-template-columns:258px minmax(0,1fr);gap:54px;align-items:start;}
+  .sidenav{display:flex;flex-direction:column;position:sticky;top:18px;max-height:calc(100vh - 36px);
+    background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+    box-shadow:0 1px 3px var(--shadow);}
+  .main .wrap{max-width:920px;margin:0;}
+  .toc-fab{display:none;}
+}
+.toc-fab{position:fixed;right:22px;bottom:22px;z-index:70;background:var(--card);border:1px solid var(--border-strong);color:var(--muted);border-radius:22px;padding:9px 18px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s,color .15s,border-color .15s;box-shadow:0 4px 16px var(--shadow);}
+.toc-fab.show{opacity:1;pointer-events:auto;}
+.toc-fab:hover{color:var(--accent);border-color:var(--accent);}
+.toc-scrim{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.32);z-index:80;opacity:0;pointer-events:none;transition:opacity .22s;}
+.toc-scrim.show{opacity:1;pointer-events:auto;}
+.toc-panel{position:fixed;top:0;right:0;bottom:0;width:min(340px,88vw);background:var(--page);border-left:1px solid var(--border);z-index:90;transform:translateX(101%);transition:transform .26s ease;display:flex;flex-direction:column;}
+.toc-panel.show{transform:translateX(0);}
+.toc-panel-head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border);font-size:14.5px;font-weight:600;}
+.toc-close{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;font-family:inherit;padding:2px 6px;line-height:1;}
+.toc-close:hover{color:var(--accent);}
+.toc-panel-body{flex:1;overflow-y:auto;padding:16px 20px 20px;}
+.toc-panel-body .toc-grid{column-count:1;}
+.toc-panel-body .toc-ch-link{font-size:14px;}
+.toc-panel-body .toc-sub{font-size:13px;}
+@media (max-width:999px){.toc-fab{opacity:1;pointer-events:auto;}}
+@media print{
+  .toc-fab,.toc-scrim,.toc-panel,.progress{display:none;}
+  .shell{display:block;max-width:none;}
+  .sidenav{display:none;}
+  .main .wrap{max-width:none;}
+}
+/*TOC-CSS-END*/
+</style>
+</head>
+<body>
+<!--TOC-SHELL-BEGIN-->
+<div class="shell">
+<aside class="sidenav" id="toc" aria-label="文档目录">
+<div class="sidenav-head"><span class="toc-title">目录</span><span class="toc-meta" id="tocMeta">12 章 · 33 节 · 18 张图</span></div>
+<div class="sidenav-body" id="sidenavBody">
+<div class="toc-grid">
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch00"><span class="n">00</span>导读：这份文档怎么用</a>
+<a class="toc-sub" href="#ch00-1">本文在技能体系里的位置</a>
+<a class="toc-sub" href="#ch00-2">全文主线</a>
+<a class="toc-sub" href="#ch00-3">图片来源声明</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch01"><span class="n">01</span>寄生参数：布局里真正决定性能的东西</a>
+<a class="toc-sub" href="#ch01-1">1.1 隐形元件：寄生电感从哪来</a>
+<a class="toc-sub" href="#ch01-2">1.2 di/dt 与 dv/dt 各打各的靶</a>
+<a class="toc-sub" href="#ch01-3">1.3 连续电流与脉冲电流：谁决定布局</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch02"><span class="n">02</span>功率回路：布局的第一优先级</a>
+<a class="toc-sub" href="#ch02-1">2.1 热回路 Hot Loop</a>
+<a class="toc-sub" href="#ch02-2">2.2 Boost 同理：热回路换到了输出侧</a>
+<a class="toc-sub" href="#ch02-3">2.3 压缩环路面积的三个手段</a>
+<a class="toc-sub" href="#ch02-4">2.4 只有"小回路"才需要热</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch03"><span class="n">03</span>层叠与地平面</a>
+<a class="toc-sub" href="#ch03-1">3.1 层叠：给电流一条回家的路</a>
+<a class="toc-sub" href="#ch03-2">3.2 PGND / SGND 与去耦</a>
+<a class="toc-sub" href="#ch03-3">3.3 过孔、敷铜与载流</a>
+<a class="toc-sub" href="#ch03-4">3.4 热风焊盘的隐性代价</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch04"><span class="n">04</span>驱动回路与 Kelvin</a>
+<a class="toc-sub" href="#ch04-1">4.1 共源电感：驱动回路的头号敌人</a>
+<a class="toc-sub" href="#ch04-2">4.2 Kelvin 源极：把参考地还给驱动</a>
+<a class="toc-sub" href="#ch04-3">4.3 收益量化与器件选型</a>
+<a class="toc-sub" href="#ch04-4">4.4 Kelvin 电流采样：同一思想的控制侧</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch05"><span class="n">05</span>栅极走线与驱动布置</a>
+<a class="toc-sub" href="#ch05-1">5.1 栅极走线规则</a>
+<a class="toc-sub" href="#ch05-2">5.2 驱动器布置与回流归位</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch06"><span class="n">06</span>完整案例：两相 Buck 的噪声排障</a>
+<a class="toc-sub" href="#ch06-1">6.1 现象：随负载出现的振铃</a>
+<a class="toc-sub" href="#ch06-2">6.2 定位：输入电容的反谐振</a>
+<a class="toc-sub" href="#ch06-3">6.3 对策与验证</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch07"><span class="n">07</span>实测验证：双脉冲与近场探测</a>
+<a class="toc-sub" href="#ch07-1">7.1 双脉冲测试：布局的体检仪</a>
+<a class="toc-sub" href="#ch07-2">7.2 从波形反推回路电感</a>
+<a class="toc-sub" href="#ch07-3">7.3 近场探测与 EMI 排查</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch08"><span class="n">08</span>十个常见误区</a>
+
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch09"><span class="n">09</span>公式速查卡</a>
+<a class="toc-sub" href="#ch09-1">寄生参数量级</a>
+<a class="toc-sub" href="#ch09-2">热回路与层叠</a>
+<a class="toc-sub" href="#ch09-3">驱动回路与 Kelvin</a>
+<a class="toc-sub" href="#ch09-4">实测验证</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch10"><span class="n">10</span>自测：检查你是否真的掌握了</a>
+
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch11"><span class="n">11</span>参考资料与图片来源</a>
+<a class="toc-sub" href="#ch11-1">原厂应用笔记（本文图片来源）</a>
+<a class="toc-sub" href="#ch11-2">技术文章</a>
+<a class="toc-sub" href="#ch11-3">工具与标准</a>
+</div>
+</div>
+</div>
+<a class="toc-top" href="#top">回到顶部</a>
+</aside>
+<main class="main">
+<!--TOC-SHELL-END-->
+<div class="wrap" id="top">
+
+<div class="crumb"><a href="index.html">电力电子技能体系</a><span>/</span>实现层 · PCB 与功率布局</div>
+
+<h1>PCB 与功率布局：在电力电子里怎么用</h1>
+<p class="sub">寄生参数 · 环路面积 · Kelvin —— 从原理图到一块"开得快、振得小、过的了 EMC"的功率板</p>
+<div class="tagrow">
+  <span class="tag">实现层 04</span>
+  <span class="tag">先修：建模层（环路设计）· 器件与驱动</span>
+  <span class="tag">产出：可量产的功率布局</span>
+  <span class="tag">图文引自原厂资料</span>
+</div>
+
+<div class="callout">
+  <p><strong>原理图决定"电流走哪里"，布局决定"电流以什么代价走那里"。</strong>同样一张 Buck 原理图，布局好的板子关断尖峰 30 V、EMC 一次过；布局差的板子尖峰 120 V、加 Snubber 加滤波单都救不回来。差别全部来自三样看不见的东西：寄生电感、环路面积、以及驱动参考地的接法（Kelvin）。</p>
+  <p>本文按实际设计顺序组织：先认清寄生参数（第 01 章），再按优先级处理功率回路（02）、层叠与地（03）、驱动回路与 Kelvin（04、05），然后用一个真实排障案例（06）和双脉冲实测（07）收口。全部插图引自 ADI、原厂与公开技术资料，每张图都附出处链接。</p>
+</div>
+
+<h2 id="ch00"><span class="num">00</span>导读：这份文档怎么用</h2>
+
+<h3 id="ch00-1">本文在技能体系里的位置</h3>
+<p>本页对应技能分层地图「04 实现层 · PCB 与功率布局」。它与其余文档的关系：</p>
+<ul>
+<li><strong>上游是建模层</strong>：《小信号建模》里 G<sub>vd</sub> 的高频段形状、峰电流模式的采样噪声，最终都由布局的寄生参数决定——布局决定了你实测到的那个"被控对象"长什么样。</li>
+<li><strong>上游是器件层</strong>：开关越快（SiC/GaN），di/dt、dv/dt 越高，布局的寄生电感预算越紧。同一套布局规则，硅器件将就能用，SiC 直接暴露。</li>
+<li><strong>下游是测试层</strong>：本文第 07 章的双脉冲与近场探测，就是《电路与系统分析》"建模必须和实测闭环"这句话在物理层的方法。</li>
+</ul>
+
+<h3 id="ch00-2">全文主线</h3>
+<div class="chain">
+  <div class="step">
+    <div class="n">1</div>
+    <div>
+      <div class="b">认清寄生参数（第 01 章）</div>
+      <div class="d">走线、过孔、平面都是电感 / 电阻 / 电容。建立"量级感"：多长的走线、多少纳亨、多大的 di/dt、多少伏尖峰。这是后面一切判断的标尺。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">2</div>
+    <div>
+      <div class="b">功率回路第一优先级（第 02 章）</div>
+      <div class="d">把高频换流回路（hot loop）面积压到最小：器件排布、高频去耦电容位置、层间耦合。先解决最大的噪声源，再谈别的。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">3</div>
+    <div>
+      <div class="b">层叠与地（第 03 章）</div>
+      <div class="d">层叠决定回路的"回家路径"和阻抗；PGND/SGND 划分、过孔与载流、焊盘处理，是"地"这一边的工程化。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">4</div>
+    <div>
+      <div class="b">驱动回路与 Kelvin（第 04、05 章）</div>
+      <div class="d">共源电感如何拖慢并污染驱动；Kelvin 源极封装为什么存在、怎么接；栅极走线与驱动器布置规则。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">5</div>
+    <div>
+      <div class="b">案例与实测闭环（第 06、07 章）</div>
+      <div class="d">用 AN-136 的两相 Buck 排障案例串一遍方法论；用双脉冲和近场探测把"布局好坏"变成可测量的数字。</div>
+    </div>
+  </div>
+</div>
+
+<h3 id="ch00-3">图片来源声明</h3>
+<div class="note">
+  <p>本文<strong>不手绘示意图，全部引用公开技术资料中的原图</strong>，已在每张图下方标注出处链接：主要来自 ADI（凌力尔特）应用笔记 <a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">AN-136《非隔离开关电源的 PCB 布局考量》</a>、Kelvin 源极专题文章与双脉冲测试资料。图片版权归原作者所有，此处仅作学习引用。点击每张图下的链接可阅读原文全文。</p>
+  <p>AN-136 原文较长且为英文，本站已提供<strong><a href="an136-pcb-layout-cn.html">中文全译版</a></strong>（含 Figure 1–14 原图与 Table 1 布局检查清单全译），精读原文口径时可直接查阅。</p>
+</div>
+
+<h2 id="ch01"><span class="num">01</span>寄生参数：布局里真正决定性能的东西</h2>
+
+<h3 id="ch01-1">1.1 隐形元件：寄生电感从哪来</h3>
+<p>原理图上一根导线，物理上是一段有电感、电阻、对地电容的分布参数网络。功率布局里最有杀伤力的是<strong>寄生电感</strong>，它有三个来源，量级感必须建立起来：</p>
+<div class="card">
+<table>
+<thead><tr><th scope="col" style="width:24%">来源</th><th scope="col" style="width:36%">典型量级</th><th scope="col">决定因素</th></tr></thead>
+<tbody>
+<tr><td>印制走线</td><td>≈ 1 nH/mm（1 oz 铜、1 mm 宽）；更宽的走线/平面更低</td><td>长度一次方、宽度反比——对高频功率路径而言，<b>短而宽</b>是基本方向</td></tr>
+<tr><td>过孔</td><td>0.5 ~ 2 nH（随长度增加、孔径减小）</td><td>板厚、孔径；大电流换层必须用过孔阵列摊薄</td></tr>
+<tr><td>器件封装</td><td>TO-220 三脚管源极 5 ~ 10 nH；四脚 Kelvin 封装 &lt; 2 nH</td><td>封装内部引线——布线解决不了，只能选型（第 04 章）</td></tr>
+</tbody>
+</table>
+</div>
+<div class="eq">
+<i>v</i> = <i>L</i> · d<i>i</i>/d<i>t</i>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">一切后果的来源：10 nH × 2 A/ns = 20 V——在没有开关动作时它不存在，动作瞬间它是电路里最大的电压源</span>
+</div>
+<p>一个 20 nH 的功率回路，在 SiC 的 2 A/ns 关断速度下产生 40 V 尖峰，直接叠加在母线电压上吃掉器件耐压裕量；同时它与器件输出电容 C<sub>oss</sub> 构成谐振腔，产生 30~100 MHz 的振铃——EMC 测试里最难压的那一段通常就是它。</p>
+
+<h3 id="ch01-2">1.2 di/dt 与 dv/dt 各打各的靶</h3>
+<p>开关动作带来两个变化率，它们各自"打"的靶子不同——一句话记住对偶关系：<strong>di/dt 找 L（<i>v</i>=<i>L</i>·d<i>i</i>/d<i>t</i>），dv/dt 找 C（<i>i</i>=<i>C</i>·d<i>v</i>/d<i>t</i>）</strong>。把它们混在一栏里谈，是布局分析最常见的混乱：</p>
+<div class="card">
+<table>
+<thead><tr><th scope="col" style="width:16%">变化率</th><th scope="col" style="width:32%">作用的寄生元件（本质是 L 还是 C）</th><th scope="col" style="width:26%">产生的后果</th><th scope="col">布局对策</th></tr></thead>
+<tbody>
+<tr><td>di/dt（安/纳秒）</td><td>各类<b>电感</b>：功率换流回路电感、封装引线电感、<b>共源电感 L<sub>S</sub></b></td><td>V<sub>DS</sub> 关断尖峰、开关节点振铃、地弹、源极电位被抬（V<sub>GS</sub> 扰动）</td><td>压小 hot loop 面积（第 02 章）+ Kelvin 源极（第 04 章）</td></tr>
+<tr><td>dv/dt（伏/纳秒）</td><td>各类<b>电容</b>：米勒电容 C<sub>gd</sub>、开关节点对地/对散热器/对机壳寄生电容、隔离寄生电容</td><td>米勒误导通、共模位移电流、共模 EMI</td><td>减小 SW 铜皮、驱动强下拉/Miller clamp（第 05 章）</td></tr>
+</tbody>
+</table>
+</div>
+<p>两条链会在开关管身上"合流"：<strong>换流回路的 di/dt 先在电感上打出电压尖峰，这个尖峰又以高 dv/dt 出现在开关节点，再通过 C<sub>gd</sub> 等寄生电容耦合回栅极</strong>——所以"功率回路"和"驱动回路"必须当成两个独立项目分别审查，而不是笼统地说一句"走线短一点"。共源电感 L<sub>S</sub> 之所以危险，正是因为它同时坐在 di/dt 链上（被漏极电流激励）又影响驱动参考，这是第 04 章的主题。</p>
+
+<h3 id="ch01-3">1.3 连续电流与脉冲电流：谁决定布局</h3>
+<p>把同步 Buck 的电流路径按"连续"与"脉冲"分开（下图），布局优先级立刻清晰：</p>
+
+<figure>
+<img src="images/adi-an136-f2.jpeg" alt="同步 Buck 变换器的连续电流路径与脉冲电流路径" width="1055" height="565" loading="lazy" decoding="async">
+<figcaption>同步 Buck 的两类电流路径：<b>连续路径</b>（输入取电 → 电感 → 输出，纹波小、只关心直流电阻与压降）与<b>脉冲路径</b>（高频电容 ↔ 上管 ↔ 下管，方波电流、di/dt 极高）。只有后者决定布局的"小环路"要求。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136《PCB Layout Considerations for Non-Isolated Switching Power Supplies》Figure 2</a></figcaption>
+</figure>
+
+<ul>
+<li><strong>连续路径</strong>（输入主干、电感支路、输出）：稳态电流基本恒定，<i>v</i>=<i>L</i>·d<i>i</i>/d<i>t</i>≈0，开关沿的 di/dt 显著低于换流路径，因此布局重点更多是<strong>导通损耗、压降与温升预算</strong>——铺大铜、加过孔、走平面，怎么粗怎么来。但要注意：它的寄生电感并非"无所谓"，仍会影响纹波、瞬态响应和 EMI，只是优先级排在换流路径之后。</li>
+<li><strong>脉冲路径</strong>（上管漏极 → 开关节点 → 下管源极 → 高频电容）：方波电流全部的 di/dt 都发生在这里。它要求的不是"宽"，而是<strong>回路面积小</strong>——面积决定电感，电感决定尖峰与振铃。</li>
+</ul>
+<div class="note warn">
+  <p><b>最常见的思维错位</b>：把"大电流"当成了布局的敌人，把所有粗铜走线摆在第一优先级；而对真正决定 EMC 与器件安全的<b>高频脉冲回路</b>反而随手一画。记住：<b>损耗看连续路径（电阻），噪声看脉冲路径（电感）</b>——两条路径的优化方向经常互相冲突（例如把高频电容摆在最里面会牺牲输入干路的宽度），必须先脉冲后连续。</p>
+</div>
+
+<h2 id="ch02"><span class="num">02</span>功率回路：布局的第一优先级</h2>
+
+<h3 id="ch02-1">2.1 热回路 Hot Loop</h3>
+<p>Hot loop（热回路 / 换流回路）定义为：<strong>开关动作瞬间，di/dt 电流在器件与最近的高频储能电容之间围成的那一圈</strong>。它是整块板子上唯一"每个开关沿都在被充放电"的回路，因此也是电压尖峰、振铃、辐射 EMI 三件事的共同源头：</p>
+
+<figure>
+<img src="images/adi-an136-f3.jpeg" alt="Buck 变换器的热回路及其寄生电感与布局示例" width="1375" height="712" loading="lazy" decoding="async">
+<figcaption>(a) 电路视角：C<sub>HF</sub> ↔ 上管 Q<sub>T</sub> ↔ 下管 Q<sub>B</sub> 围成的红圈就是 hot loop，圈上的每一节导线都是串联寄生电感；(b) 布局视角：0.1~10 μF 陶瓷电容必须<b>骑在</b> Q<sub>T</sub> 漏极与 Q<sub>B</sub> 源极之间，把红圈压到器件脚间距量级。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 3</a></figcaption>
+</figure>
+
+<p>读这张图的正确姿势：<strong>回路电感 = 这一圈上所有节段的电感之和</strong>——包括两颗管子的封装引线、走线、过孔、以及"看起来很大"的电解/大容电容的 ESL。这里要分清两种电容的分工：<strong>大容量电解（bulk）管能量</strong>——它承担低频储能、母线纹波和负载动态，绝非"没有贡献"；<strong>陶瓷电容（C<sub>HF</sub>）管边沿</strong>——它 ESL 极低又能贴得近，才能就近吃掉开关沿对应的超高频脉冲电流。bulk 电容的短板不是"存不了能量"，而是"到 MHz 以上阻抗被自身 ESL 抬高、又物理上贴不进圈里"，所以对 hot loop 帮不上忙。真正把 di/dt 就近接住的，是那颗 0.1~10 μF 陶瓷电容。这就是 2.3 节三个手段的第一条。</p>
+
+<h3 id="ch02-2">2.2 Boost 同理：热回路换到了输出侧</h3>
+
+<figure>
+<img src="images/adi-an136-f4.jpeg" alt="Boost 变换器的连续电流路径与脉冲电流路径" width="988" height="512" loading="lazy" decoding="async">
+<figcaption>Boost 的连续与脉冲路径划分（实线 = 连续电流，虚线 = 脉冲电流）：<b>输入电感电流相对连续</b>（被电感平滑），而开关管 Q<sub>B</sub> 与整流二极管 D 之间每个开关沿都在高频换流——脉冲电流路径落在<b>输出侧</b>。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 4</a></figcaption>
+</figure>
+
+<figure>
+<img src="images/adi-an136-f5.jpeg" alt="Boost 变换器热回路的寄生电感与布局示例" width="1393" height="525" loading="lazy" decoding="async">
+<figcaption>Boost 的热回路与布局：高频陶瓷电容 C<sub>HF</sub> 应放在<b>输出侧</b>，紧贴开关管 Q<sub>B</sub> 与升压二极管 D，把 <b>Q<sub>B</sub> → D → 输出侧 C<sub>HF</sub> → Q<sub>B</sub></b> 这一圈换流环路面积压到最小。这与 Buck 相反：Buck 的脉冲环在输入侧，Boost 的脉冲环在输出侧。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 5</a></figcaption>
+</figure>
+
+<div class="note warn">
+  <p><b>别把 Boost 的热回路画错方向</b>：Boost 的输入串着电感，电流连续、di/dt 平缓；真正"每个开关沿被硬切换"的是<b>二极管与开关管之间的输出侧换流环</b>（叠加二极管反向恢复电流，是整板最脏的 di/dt）。所以高频陶瓷电容要贴在<b>输出侧的 Q<sub>B</sub> 与 D 之间</b>，而不是像 Buck 那样贴在输入侧。方向判断反了，布局就会把最该缩小的环路留在原地。</p>
+</div>
+
+<div class="note">
+  <p><b>拓扑换了，方法论不变</b>：先画出"开关沿时刻电流在哪一圈上被切换"（这一圈就是 hot loop），再把最近的高频电容按进圈里。Buck 的圈在输入侧（C<sub>HF</sub>↔上管↔下管），Boost 的圈在输出侧（Q<sub>B</sub>↔D↔输出 C<sub>HF</sub>）；半桥 / 全桥的热回路是"上管 + 下管 + 母线支撑电容"，LLC 是谐振腔侧，方法完全一样。<b>先找圈，再布线</b>——顺序反了的人是在"铺铜"而不是"布局"。</p>
+</div>
+
+<h3 id="ch02-3">2.3 压缩环路面积的三个手段</h3>
+<div class="card">
+<table>
+<thead><tr><th scope="col" style="width:24%">手段</th><th scope="col" style="width:38%">做法</th><th scope="col">效果与代价</th></tr></thead>
+<tbody>
+<tr><td>① 高频去耦电容就位</td><td>0.1~10 μF 陶瓷电容直接跨接在热回路两端（Buck：上管漏极与下管源极；Boost：输出侧的开关管与二极管之间）</td><td>把 di/dt 电流的"就近回流"建立起来；代价是占用器件脚旁的面积——<b>这个位置是功率板最贵的地皮</b></td></tr>
+<tr><td>② 层间耦合</td><td>让热回路的去程与回程在相邻两层<b>紧密正对</b>（去程顶层、回程紧贴其下的地层/中间层），使回流路径尽量贴近去程</td><td>去回电流方向相反、间距极小 → <b>磁场相互抵消</b>，自感+互感合成后的回路电感大幅低于同层走线；代价是占用层叠资源（第 03 章）</td></tr>
+<tr><td>③ 器件排布归位</td><td>半桥上下管面对面/紧贴布置，驱动器塞进器件之间的空档，开关节点铜皮最小化</td><td>回路长度直接由"器件脚间距"决定，而不是"你的走线功力"；代价是散热与爬电距离要另外权衡</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note ok">
+  <p><b>三手段的优先级</b>：① 是必须项（没有高频电容，②③做得再好，di/dt 电流也会从远处的电解电容绕一个大圈）；② ③ 是把电感从"几十 nH"压到"几 nH"的关键。<b>热回路电感每降 10 nH，同等 di/dt 下尖峰少 20~40 V</b>——这是布局能直接换来的器件安全裕量。</p>
+</div>
+
+<h3 id="ch02-4">2.4 只有"小回路"才需要热</h3>
+<p>"热回路"这个词容易被误解成"发热的回路"。它是<strong>"热"（高频、快速切换）而不是"烫"</strong>：真正的发热大户是连续路径上的 I²R 与开关器件本身。混淆的结果常常是"为了散热把热回路的器件拉开距离"，恰好把最怕大的面积做大了。正确的并行处理：<strong>发热问题用铜箔面积、过孔阵列、散热过孔到背面铺铜解决；热回路问题用面积最小化解决</strong>——两者用的是板上不同的区域和不同的层，通常并不冲突。</p>
+<h2 id="ch03"><span class="num">03</span>层叠与地平面</h2>
+
+<h3 id="ch03-1">3.1 层叠：给电流一条回家的路</h3>
+<p>层叠是布局的"骨架"：它决定了每一条电流的回程在哪里、离去程多远。功率板层叠的核心原则只有一条——<strong>每个大电流层，紧贴一个完整的地平面或电源平面</strong>：</p>
+
+<figure>
+<img src="images/adi-an136-f1.jpeg" alt="6 层与 4 层 PCB 的推荐与不推荐层叠" width="914" height="601" loading="lazy" decoding="async">
+<figcaption>6 层与 4 层板的推荐（Desired）与不推荐（Undesired）层叠对比。推荐方案的特征：信号层始终<b>夹在完整平面之间</b>（回流就在正下方），功率层紧邻地平面（回路面积最小、阻抗最低）；不推荐方案里信号层暴露在板边、功率层与地距离过远。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 1</a></figcaption>
+</figure>
+
+<p>逐条翻译成设计动作：</p>
+<ul>
+<li><strong>功率层与 PGND 相邻</strong>：热回路的去程（顶层器件铜）与回程（第二层完整 PGND）正对，回程电流自动镜像在去程正下方——这是"层间耦合"手段的层叠基础。</li>
+<li><strong>信号层不出头</strong>：控制 / 采样信号夹在两个完整平面之间，回流有最近的镜像路径，抗扰与辐射同时受益。</li>
+<li><strong>避免跨分割</strong>：信号（尤其是开关节点检测、电流采样）一旦跨过地平面分割缝，回流被迫绕行，环路面积和串扰一起变大。</li>
+</ul>
+
+<h3 id="ch03-2">3.2 PGND / SGND 与去耦</h3>
+<p>"地"不是一个东西，是多种回流路径的集合。功率地（PGND）承载安培级的脉冲电流，信号地（SGND）承载毫安级的采样与控制电流。<strong>当控制器提供独立的 SGND/PGND（或 AGND）引脚时，应优先遵循 datasheet 与 reference layout 的接地方案</strong>——典型做法是让控制信号回流与脉冲功率回流分开，并在芯片指定的安静节点附近单点汇接（常选在功率地引脚或采样网络参考点）。<strong>不要为了"分地"而任意切割完整的参考平面</strong>：对没有独立 PGND/SGND 引脚、或 datasheet 明确要求共平面的器件，盲目割地反而破坏回流、恶化 EMI：</p>
+
+<figure>
+<img src="images/adi-an136-f12.jpeg" alt="控制器去耦电容与信号地/功率地的分离连接" width="844" height="828" loading="lazy" decoding="async">
+<figcaption>控制 IC 的去耦电容接 SGND，功率回路接 PGND，两者在单点汇接：脉冲电流的压降落在 PGND 网络上，不会串进 IC 的参考地；IC 供电干净，采样参考稳定。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 12</a></figcaption>
+</figure>
+
+<ul>
+<li><strong>为什么单点</strong>：脉冲电流在 PGND 上产生的瞬态压降（L·di/dt）是安培级回路在纳亨地网上毫伏到伏级的跳动。多点相连 = 把这个跳动原样送给 IC 的地参考；单点汇接 = 让跳动只存在于功率侧，SGND 始终是"静土"。</li>
+<li><strong>去耦电容跟地走</strong>：IC 的 V<sub>CC</sub> 去耦电容回流必须直接进 SGND（图中的做法），而不是随手就近打过孔进 PGND——那等于给控制地又开了一条污染通道。</li>
+<li><strong>分压/采样的参考点</strong>：输出电压采样电阻的"地端"应接在输出电容的功率地极板上（Kelvin 采样，见 4.4），而不是任意信号地——否则负载电流在铜皮上的压降会直接变成输出电压的误差。</li>
+</ul>
+
+<h3 id="ch03-3">3.3 过孔、敷铜与载流</h3>
+<div class="card">
+<table>
+<thead><tr><th scope="col" style="width:26%">项目</th><th scope="col">工程规则</th></tr></thead>
+<tbody>
+<tr><td>过孔 = 电阻 + 电感</td><td>单个过孔 ≈ 0.5~2 nH / mΩ 量级。功率电流换层必须<b>过孔阵列</b>（8~16 个成排），并且阵列要放在电流真正流过的地方，不是装饰性撒点。</td></tr>
+<tr><td>载流能力</td><td>按 IPC-2152 或经验曲线（1 oz 铜、10°C 温升约 1 A/mm 宽量级）核算走线/平面宽度；连续路径按最大直流核算，热回路按 RMS 核算。</td></tr>
+<tr><td>敷铜的目的性</td><td>铺铜要问"这段铜属于哪条回路"：属于连续路径 → 越宽越好；属于热回路 → 面积越小越好。<b>没有目的性的满板敷铜会无意中扩大高频回流面积。</b></td></tr>
+<tr><td>背面散热</td><td>器件散热焊盘打过孔阵列到背面大铜——同时服务热（第 03 章之外的另一半）与寄生（把源极回流引到第二层平面）。</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch03-4">3.4 热风焊盘的隐性代价</h3>
+
+<figure>
+<img src="images/adi-an136-f8.jpeg" alt="功率器件焊盘：热风焊盘的误用与推荐焊盘" width="1319" height="724" loading="lazy" decoding="async">
+<figcaption>左：热风焊盘（thermal relief）的辐条把焊盘与平面隔开——回流被迫走细辐条，电阻与电感同时上升；右：功率焊盘推荐<b>实心全连接</b>。热风焊盘只属于手工焊接友好性，不属于功率路径。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 8</a></figcaption>
+</figure>
+
+<div class="note warn">
+  <p><b>热风焊盘是功率板最隐蔽的坑之一</b>：它在 Gerber 里只是一个小小的十字花，视觉上完全无害，实际却让功率回流经过几根细辐条——每根辐条 mΩ 级电阻和纳亨级电感，串联在安培级回路上。规则：<b>高频功率与地焊盘通常实心连接</b>（除非制造或器件另有要求，如大铜面回流焊需适度热阻平衡），热风焊盘优先只留给纯信号网络（且要评估载流）。</p>
+</div>
+
+<h2 id="ch04"><span class="num">04</span>驱动回路与 Kelvin</h2>
+
+<h3 id="ch04-1">4.1 共源电感：驱动回路的头号敌人</h3>
+<p>三脚封装的 MOSFET 里，源极引脚<strong>同时</strong>承担两个角色：功率电流的回流通道、以及驱动信号的参考地。封装与走线的源极电感（共源电感，Common Source Inductance，L<sub>S</sub>）因此同时坐在两条回路里——这就是问题的根源：</p>
+
+<figure>
+<img src="images/kelvin-ls-vgs.png" alt="开通瞬间寄生电感对 VGS 的影响：波形与机理" width="1040" height="615" loading="lazy" decoding="async">
+<figcaption>开通瞬间的寄生效应：驱动拉高 V<sub>GS</sub> → I<sub>D</sub> 上升（di/dt &gt; 0）→ 源极电感上产生 <i>v</i> = L<sub>S</sub>·di/dt 的反电动势，把源极电位"抬"起来 → 管子实际感受到的 V<sub>GS</sub> = V<sub>GG</sub> − V<sub>L</sub> 被削减 → 开通被拖慢（上图实测波形的 turn-on delay）。<br>
+图源：<a href="https://m.leirte.com/sys-nd/3052.html" target="_blank" rel="noopener">镭尔特《MOSFET 多出来的一只 Source 脚——通俗理解 Kelvin Source Concept》</a></figcaption>
+</figure>
+
+<p>这个机理本质是<strong>负反馈</strong>：di/dt 越大，L<sub>S</sub> 上的反电动势越大，V<sub>GS</sub> 被削得越狠，于是 di/dt 被自动压回去。听起来"自稳定"，实际后果全是负面的：</p>
+<ul>
+<li><strong>开关变慢</strong>：电流上升/下降沿被拉长，开关损耗上升；</li>
+<li><strong>驱动失控</strong>：你设计的 R<sub>g</sub> 与驱动强度，实际效果被 L<sub>S</sub> 重新分配——同一张原理图，换个封装/布局，开关速度完全不同；</li>
+<li><strong>关断 dv/dt 误开通</strong>：互补管关断时，源极电感耦合的瞬态电压叠加到被驱动管的 V<sub>GS</sub> 上，可能越过阈值造成半桥直通。</li>
+</ul>
+
+<h3 id="ch04-2">4.2 Kelvin 源极：把参考地还给驱动</h3>
+
+<figure>
+<img src="images/kelvin-pin-compare.png" alt="TO-247-4 四脚封装与电气符号：驱动源极与功率源极分离" width="1032" height="480" loading="lazy" decoding="async">
+<figcaption>四脚（Kelvin Source）封装：引脚 2 为功率源极（Power source），引脚 3 为驱动源极（Driver source）——驱动回路从此<b>不再穿过</b>功率回流路径，驱动参考点被"送"到管芯源极旁边。<br>
+图源：<a href="https://m.leirte.com/sys-nd/3052.html" target="_blank" rel="noopener">镭尔特 Kelvin Source Concept 文章 Figure 1</a></figcaption>
+</figure>
+
+<figure>
+<img src="images/kelvin-4wire.png" alt="四线法测电阻与 Kelvin 源极的类比" width="1080" height="303" loading="lazy" decoding="async">
+<figcaption>思想源头就是四线法（Kelvin sensing）测低阻：大电流路径与电压检测路径分开，检测端不流过电流就没有压降误差。Kelvin 源极把它搬到封装里：功率电流走脚 2，驱动参考走脚 3，后者无功率电流，V<sub>GS</sub> 采样纯净。<br>
+图源：<a href="https://m.leirte.com/sys-nd/3052.html" target="_blank" rel="noopener">镭尔特 Kelvin Source Concept 文章 Figure 4</a></figcaption>
+</figure>
+
+<p><strong>布线要点（封装给了引脚，板子要接对）</strong>：</p>
+<ul>
+<li>驱动源极（脚 3）单独走线回到驱动器的 GND，<strong>中途不碰功率 PGND</strong>；</li>
+<li>功率源极（脚 2）与散热焊盘、PGND 平面正常连接，承载全部回流；</li>
+<li>两条"源"最后在器件附近单点汇接（回路连续性），但驱动信号的整个往返路径（driver OUT → 栅极 → R<sub>g</sub> → 驱动源极 → driver GND）必须是<strong>独立小环</strong>。</li>
+</ul>
+<div class="note warn">
+  <p><b>选了四脚封装、布线却把脚 3 直接接进功率地平面</b>——这是 Kelvin 方案最常见的"白买"：驱动电流照样从功率地回流，共源电感分文未减。Kelvin 是"封装 + 布局"的组合拳，缺一半等于零。</p>
+</div>
+
+<h3 id="ch04-3">4.3 收益量化与器件选型</h3>
+
+<figure>
+<img src="images/kelvin-energy-compare.png" alt="3-pin 与 4-pin MOSFET 在 500W–2kW 功率等级下的开关能量对比" width="927" height="852" loading="lazy" decoding="async">
+<figcaption>3 脚与 4 脚封装在不同功率等级下的开关能量对比：功率越高、电流越大、di/dt 越高，共源电感的"负反馈税"越重，4 脚方案的开关能量优势越明显。<br>
+图源：<a href="https://m.leirte.com/sys-nd/3052.html" target="_blank" rel="noopener">镭尔特 Kelvin Source Concept 文章 Figure 5</a></figcaption>
+</figure>
+
+<figure>
+<img src="images/kelvin-device-demand.png" alt="Si、SJ MOSFET、SiC MOSFET 对 Kelvin 源极的需求强弱" width="1080" height="331" loading="lazy" decoding="async">
+<figcaption>器件类型与 Kelvin 需求的关系：开关速度越快（Si → SuperJunction → SiC），di/dt 越高，共源电感的相对影响越大——SiC/GaN 应用里 Kelvin 源极接近刚需。<br>
+图源：<a href="https://m.leirte.com/sys-nd/3052.html" target="_blank" rel="noopener">镭尔特 Kelvin Source Concept 文章 Figure 7</a></figcaption>
+</figure>
+
+<p>定性结论比具体数字更可靠：在<strong>某一具体测试条件</strong>下（引自上述文章汇总的原厂数据：约 2 kW 级 PFC 整机），3 脚换 4 脚可带来约 <strong>0.3% 的效率提升、约 20°C 的器件壳温下降</strong>，收益全部来自开关沿变快、开关损耗下降。<strong>这类数字高度依赖器件、负载、母线电压、驱动阻抗与开关速度，只能当量级参考，不能当普适指标</strong>——想引用请回到 Wolfspeed / Infineon / onsemi 的原始测试曲线并附测试条件。趋势是确定的：<strong>SiC 的开关沿本来就要比硅快一个数量级，同等的 L<sub>S</sub> 在 SiC 上造成的 V<sub>GS</sub> 削减和损耗多得多</strong>，这也是当前 SiC 分立器件普遍转向四脚/开尔文封装（TO-247-4、TO-263-7 等）的原因。</p>
+
+<h3 id="ch04-4">4.4 Kelvin 电流采样：同一思想的控制侧</h3>
+<p>Kelvin 思想在控制侧同样无处不在——输出电流采样就是典型：</p>
+
+<figure>
+<img src="images/adi-an136-f14.jpeg" alt="输出电流的 Kelvin 采样：(a) RSENSE 方案 (b) 电感 DCR 采样方案" width="975" height="1068" loading="lazy" decoding="async">
+<figcaption>(a) 采样电阻方案：检测线从电阻两端独立引出（不流过功率电流），放大器读到的就是电阻上的真实压降；(b) 电感 DCR 采样：R∥C 网络跨接电感两端，检测路径同样不承载功率电流。两处的关键都是"<b>检测点打在电流真正流过的两端</b>"，而不是随便就近取电位。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 14</a></figcaption>
+</figure>
+
+<div class="note">
+  <p><b>一招两式的统一</b>：Kelvin 驱动源极 = 让<b>驱动参考</b>不流功率电流；Kelvin 电流采样 = 让<b>检测表笔</b>不流功率电流。凡是"参考点/检测点"和"功率路径"共用的地方，都问一句：能不能像四线法一样分开？这一问在布局评审里能抓掉一大类隐蔽误差（采样电阻、分流器、遥测、基准地）。</p>
+</div>
+
+<h2 id="ch05"><span class="num">05</span>栅极走线与驱动布置</h2>
+
+<h3 id="ch05-1">5.1 栅极走线规则</h3>
+
+<figure>
+<img src="images/adi-an136-f13.jpeg" alt="MOSFET 栅极驱动走线的布线示例" width="675" height="714" loading="lazy" decoding="async">
+<figcaption>半桥栅极走线示例：上管驱动（TG）与下管驱动（BG）各自独立走线、互不并行长距离；开关节点 SW 的铜皮被压在两管之间最小区域；驱动器布置在器件近旁，驱动参考直接取自各自源极。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 13</a></figcaption>
+</figure>
+
+<div class="card">
+<table>
+<thead><tr><th scope="col" style="width:28%">规则</th><th scope="col">理由</th></tr></thead>
+<tbody>
+<tr><td>栅极回路最小化（往返同层紧邻）</td><td>栅极回路电感与 C<sub>iss</sub> 构成谐振：电感大 → 栅极振铃、甚至超过 V<sub>GS,max</sub> 击穿。往返走线同层并排、紧贴，是降低回路电感的标准做法</td></tr>
+<tr><td>R<sub>g</sub> 就近贴管脚</td><td>若目的是阻尼 Gate 引脚附近由走线寄生 L 与 C<sub>iss</sub>/C<sub>gd</sub> 构成的局部谐振，R<sub>g</sub> 应<b>贴近 MOSFET 栅极</b>放置。放在驱动器输出端仍能限流、仍能调开关速度，并非"没放"——只是对局部栅极振铃的阻尼效果明显变差（振铃回路在 R<sub>g</sub> 之外）</td></tr>
+<tr><td>上/下管驱动各自独立回流</td><td>上管回流到 VS/SW 节点、下管回流到 PGND（或各自 Kelvin 源极），<b>不共用走线段</b>——共段 = 互相注入 dv/dt/di/dt 干扰</td></tr>
+<tr><td>开关节点铜皮最小化</td><td>SW 节点对地电容决定 dv/dt 位移电流与共模 EMI；铜皮只在"连接器件"所需的最小范围</td></tr>
+<tr><td>驱动走线不跨分割、不并行 SW 节点</td><td>SW 是整板 dv/dt 最强的骚扰源；栅极走线与其长距离并行等于自装耦合电容</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch05-2">5.2 驱动器布置与回流归位</h3>
+<ul>
+<li><strong>驱动器塞进器件空档</strong>：半桥两管之间的"死区"是驱动器的天然座位——距离最短、上下管驱动回路天然分离、也天然远离控制区。</li>
+<li><strong>自举电容紧贴</strong>：高侧自举方案的 C<sub>boot</sub> 必须贴着驱动 IC 的 VB/VS 引脚，它承载的是高侧驱动的全部脉冲电流——它就是高侧驱动的"hot loop 电容"。</li>
+<li><strong>米勒钳位与负压</strong>：dv/dt 高的场合（SiC、GaN），关断沿的米勒电流可能把互补管抬过阈值。对策按优先级：减小开关节点铜皮（降低耦合）→ 关断用低阻路径或分离 R<sub>on</sub>/R<sub>off</sub>、强下拉 → 专用 Miller clamp → 负压关断。<b>是否用负压、用多大负压强烈依赖具体器件</b>：SiC 常见 −2 ~ −5 V，但不少 GaN 推荐 0 V 关断（负压还会增大第三象限死区导通损耗），务必以器件 datasheet 与 gate-driver 应用笔记为准。这些都要在布局阶段预留位置，而不是调试时飞线。</li>
+<li><strong>驱动电源去耦</strong>：每个驱动通道的 V<sub>CC</sub> 去耦电容（含负压轨）紧贴驱动 IC，回流直接进该通道的参考地——与 3.2 节 IC 去耦同理。</li>
+</ul>
+
+<h2 id="ch06"><span class="num">06</span>完整案例：两相 Buck 的噪声排障</h2>
+<p>本章复述 AN-136 中的真实排障案例（双相、2.5 V / 30 A 输出的 Buck），把前五章的方法串成一次完整的"现象 → 定位 → 对策 → 验证"。</p>
+
+<h3 id="ch06-1">6.1 现象：随负载出现的振铃</h3>
+
+<figure>
+<img src="images/adi-an136-f6.jpeg" alt="两相 2.5V/30A Buck 的布局与 0A、13.3A 下的开关波形对比" width="1479" height="1612" loading="lazy" decoding="async">
+<figcaption>布局与波形对比：0 A 负载时开关节点波形干净；13.3 A 负载时出现明显振铃与噪声。同一个电路、同一个布局，唯一变量是负载电流（即热回路的 di/dt 幅度）。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 6</a></figcaption>
+</figure>
+
+<p>读图要点：<strong>"轻载干净、重载振荡"是热回路问题的签名</strong>。轻载下脉冲电流幅度小，L·di/dt 不足以激起可见振铃；重载 di/dt 变大，回路电感两端的激发电压超过阈值，寄生谐振被点亮。凡是"负载相关"的开关噪声，第一嫌疑通常是热回路，而不是控制环路（控制环不稳定通常是全负载或特定频段，且与开关沿无关）。</p>
+
+<h3 id="ch06-2">6.2 定位：输入电容的反谐振</h3>
+<p>定位逻辑链：</p>
+<div class="chain">
+  <div class="step">
+    <div class="n">1</div>
+    <div><div class="b">振铃频率多少？</div><div class="d">从波形读出振铃周期 → f<sub>ring</sub>。与候选谐振腔对照：L<sub>loop</sub>–C<sub>oss</sub>（几十 MHz）、输入电容组反谐振（几~几十 MHz）、驱动回路（百 MHz 级）。对上号即锁定回路。</div></div>
+  </div>
+  <div class="step">
+    <div class="n">2</div>
+    <div><div class="b">激发源在哪？</div><div class="d">di/dt 电流只存在于热回路——它在这一圈上每经过一段电感就产生一次电压台阶，表现为输入电压轨上的高频尖峰，直接耦合进开关节点与输出。</div></div>
+  </div>
+  <div class="step">
+    <div class="n">3</div>
+    <div><div class="b">为什么大电容没用？</div><div class="d">板上的大容量电解/固态电容离热回路远、且自身 ESL 高：在高频段它的阻抗 = jω·ESL，<b>容量再大也救不了 10 MHz 以上</b>。di/dt 电流找不到就近回流，只能绕大圈——振铃随之而来。</div></div>
+  </div>
+</div>
+
+<h3 id="ch06-3">6.3 对策与验证</h3>
+
+<figure>
+<img src="images/adi-an136-f7.jpeg" alt="在热回路两端增加两只 1µF 高频输入电容后波形对比" width="1480" height="1658" loading="lazy" decoding="async">
+<figcaption>对策：在每相上管漏极与下管源极之间<b>直接</b>增加两只 1 μF 高频陶瓷电容（贴进热回路）。效果：0 A 与 30 A 下波形同样干净。对策没有任何电路改动——只是把"就近回流"的物理路径补上了。<br>
+图源：<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">ADI AN-136 Figure 7</a></figcaption>
+</figure>
+
+<div class="note ok">
+  <p><b>本案例的三条通用教训</b>：① 高频去耦电容的位置比容量重要——它必须"骑"在热回路两端；② "大容量 ≠ 低阻抗"，频率越高越看 ESL 和距离；③ 排障先看负载相关性（重载变差 → 热回路；轻载变差 → 多半是环路/最小负载问题），一步就能把方向切对。</p>
+</div>
+<h2 id="ch07"><span class="num">07</span>实测验证：双脉冲与近场探测</h2>
+
+<h3 id="ch07-1">7.1 双脉冲测试：布局的体检仪</h3>
+<p>双脉冲测试（Double Pulse Test，DPT）用最简单的半桥 + 电感负载，把开关器件在"真实 di/dt、真实回路"下的开通过程（第二段脉冲的开通沿）和关断过程（长脉冲末端的关断沿）暴露给示波器——<strong>它是把"布局好坏"变成数字的标准仪器</strong>：</p>
+
+<figure>
+<img src="images/dpt-principle.jpg" alt="双脉冲测试原理：三段时序与关断尖峰" width="1876" height="981" loading="lazy" decoding="async">
+<figcaption>双脉冲时序（对应图中 t0~t3）：<b>t0→t1</b> 第一脉冲 T1 期间下管开通，电感电流线性上升储能；<b>t1→t2</b> 第一脉冲关断，电流转入上管体二极管续流；<b>t2</b> 第二脉冲上升沿下管再次开通——此刻可观察上管体二极管的<b>反向恢复电流尖峰</b>与开通 di/dt；<b>t2→t3</b>（长脉冲 T3）电流继续升到目标值；<b>t3</b> 长脉冲末端下管在目标电流下关断，回路杂散电感 L<sub>σ</sub> 产生尖峰 V<sub>max</sub>=V<sub>DC</sub>+ΔV，ΔV=L<sub>σ</sub>·di/dt。<b>开通特性看第二脉冲上升沿（t2），换流回路电感看长脉冲末端关断沿（t3）</b>——这两沿正是布局审查的重点。<br>
+图源：<a href="https://zhuanlan.zhihu.com/p/20507267367" target="_blank" rel="noopener">知乎《SiC 碳化硅 MOSFET 功率器件双脉冲测试方法介绍》</a></figcaption>
+</figure>
+
+<figure>
+<img src="images/dpt-setup.png" alt="双脉冲测试三个阶段的电流路径与波形" width="1580" height="890" loading="lazy" decoding="async">
+<figcaption>三个工作阶段对应的电流路径与波形：① Q2 导通，电流在"电源 → 电感 → Q2"回路储能；② Q2 关断，电流转入"电感 → Q1 体二极管"续流回路；③ Q2 再次开通，Q1 的反向恢复电流叠加在 I<sub>D</sub> 上。两个回路（换流回路与续流回路）正是布局里要分别审查的对象。<br>
+图源：<a href="https://zhuanlan.zhihu.com/p/20507267367" target="_blank" rel="noopener">知乎《SiC 碳化硅 MOSFET 功率器件双脉冲测试方法介绍》</a></figcaption>
+</figure>
+
+<div class="card">
+<table>
+<thead><tr><th scope="col" style="width:26%">DPT 看什么</th><th scope="col" style="width:36%">现象</th><th scope="col">对应的布局问题</th></tr></thead>
+<tbody>
+<tr><td>关断电压尖峰 ΔV</td><td>V<sub>DS</sub> 超出母线的过冲</td><td>换流回路电感 L<sub>σ</sub>（第 02 章）</td></tr>
+<tr><td>开通延迟与电流上升率</td><td>di/dt 被压低、沿变钝</td><td>共源电感 / Kelvin 未落实（第 04 章）</td></tr>
+<tr><td>栅极波形</td><td>V<sub>GS</sub> 振铃、平台期毛刺、负向尖峰</td><td>栅极回路电感、驱动回流共段（第 05 章）</td></tr>
+<tr><td>反向恢复</td><td>rrm 峰值与恢复振荡</td><td>换流回路电感放大振铃、体二极管/SRD 特性</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch07-2">7.2 从波形反推回路电感</h3>
+<p>DPT 最大的价值是把寄生参数变成<strong>可测量、可追踪的数字</strong>，让布局迭代有了 scoreboard。下面两式都是<strong>一阶估算</strong>，用来判断量级、追踪趋势，而不是给出精密绝对值：</p>
+<div class="eq">
+<i>L</i><sub>loop</sub> ≈ Δ<i>V</i> / (d<i>i</i>/d<i>t</i>)&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">关断沿法（一阶）：ΔV = 尖峰超出母线的部分；di/dt 从电流探头测</span>
+</div>
+<div class="eq">
+<i>L</i><sub>loop</sub> ≈ 1 / [ (2π<i>f</i><sub>ring</sub>)² · <i>C</i><sub>eq</sub> ]&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">振铃频率法（一阶）：f<sub>ring</sub> 读振铃周期，C<sub>eq</sub> 为工作偏置附近的等效谐振电容</span>
+</div>
+<div class="note">
+  <p><b>为什么只是"一阶"</b>：关断沿法的 ΔV 还混入了换流、探头寄生、器件电容与反向恢复的影响；振铃频率法的等效电容 <i>C</i><sub>eq</sub> ≠ 单颗 MOSFET 的 C<sub>oss</sub>——它还包括对管结电容、二极管结电容、PCB 寄生与探头电容，且 C<sub>oss</sub> 本身随电压强烈非线性。直接套 datasheet 单点 C<sub>oss</sub> 只能得到数量级估计，要更准就按偏置取 C<sub>eq</sub> 或用双脉冲去嵌测量。</p>
+</div>
+<div class="eq">
+算例：Δ<i>V</i> = 12 V，d<i>i</i>/d<i>t</i> = 0.4 A/ns = 4×10⁸ A/s&nbsp;&nbsp;→&nbsp;&nbsp;<i>L</i><sub>loop</sub> = 12 / (4×10⁸) = <b>30 nH</b>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">落在分立半桥 10~40 nH 的正常区间 ✓</span>
+</div>
+<div class="note warn">
+  <p><b>数字自洽是排查习惯</b>：算出的回路电感如果到了几百 nH，先怀疑 di/dt 或 ΔV 读数有误（探头带宽、接地环引入的假振铃），再怀疑布局——分立半桥布局 10~40 nH、优质叠层模块 5 nH 以下是正常区间。<b>量级感就是最快的一层校验。</b></p>
+</div>
+<p>布局迭代的正确姿势：改一版 → DPT 记录 ΔV 与 L<sub>loop</sub> → 换布局 → 同条件复测。两三个迭代周期，热回路电感通常能从几十 nH 压到 10 nH 级。</p>
+
+<h3 id="ch07-3">7.3 近场探测与 EMI 排查</h3>
+<ul>
+<li><strong>磁场探头（H 场环）找电流环</strong>：贴近板面扫一圈，辐射最强处就是 di/dt 回路的位置——用它验证"热回路是否真的小了"，也能抓到无意形成的意外环路（比如去耦电容回流绕远路）。</li>
+<li><strong>电场探头（E 场短杆）找电压节点</strong>：对准 dv/dt 最强的开关节点、散热器耦合点。散热器与 MOSFET 漏极间的寄生电容是共模 EMI 的经典通路，必要时加屏蔽板/接地。</li>
+<li><strong>与传导测试联动</strong>：近场找到的"热点"与 CISPR 传导超标频段对时间/频率对账，通常一次就能锁定主辐射回路（对应《电路与系统分析》第 2.8 节的开关频谱包络）。</li>
+</ul>
+<div class="note ok">
+  <p><b>闭环的意义</b>：DPT 给"器件与回路"打分，近场探测给"辐射源定位"打分。布局的好坏从此不是玄学评语，而是三个数字：L<sub>loop</sub>（nH）、ΔV（V）、近场峰值（dBμV）。<b>能被测量的，才能被改进</b>——这和建模层的"预测—实测—解释偏差"是同一件事在物理层的翻版。</p>
+</div>
+
+<h2 id="ch08"><span class="num">08</span>十个常见误区</h2>
+<ol>
+<li><strong>把"大电流"当第一优先级，忽略 di/dt</strong>。连续路径只看电阻与温升；脉冲路径才决定噪声与器件安全。先 hot loop，再大铜皮。</li>
+<li><strong>用大容量电容充当高频去耦</strong>。频率超过 MHz 级后阻抗由 ESL 和距离决定，电解/固态电容对热回路基本无效。0.1~10 μF 陶瓷必须贴进回路。</li>
+<li><strong>过孔只按电阻算，不算电感与阵列</strong>。单孔纳亨级电感串在热回路里就是尖峰；大电流换层必须过孔阵列，且阵列要落在电流路径上。</li>
+<li><strong>热回路器件被散热需求拉开</strong>。发热与"热回路"是两件事：散热用背面铜与过孔阵列，回路面积用器件排布解决，通常并不冲突。</li>
+<li><strong>SGND/PGND 多点乱接</strong>。功率地的 L·di/dt 跳动通过多点连接污染控制参考地；单点汇接位置要经过选择（器件地或采样参考点）。</li>
+<li><strong>功率焊盘用热风焊盘</strong>。辐条把 mΩ 级电阻和纳亨级电感串进安培级回路；高频功率与地焊盘通常实心连接。</li>
+<li><strong>栅极走线只求短、不规划回流</strong>。驱动回路 = 去程 + 回程；回程与功率回流共段或绕远，等于把 dv/dt 干扰直接接进栅极，且共源电感原样保留。</li>
+<li><strong>买了四脚 Kelvin 封装，脚 3 却接进功率地</strong>。Kelvin 是封装 + 布局的组合；驱动源极必须独立回到驱动器，中途不碰 PGND。</li>
+<li><strong>开关节点铜皮越宽越"稳"</strong>。SW 节点对地电容加大 dv/dt 位移电流与共模 EMI；它的正确目标是"最小连接面积"。</li>
+<li><strong>布局完成后不做实测闭环</strong>。没有 DPT 的 L<sub>loop</sub> 数字和近场定位，一切"应该没问题"都是假设。布局是迭代出来的，不是画出来的。</li>
+</ol>
+
+<h2 id="ch09"><span class="num">09</span>公式速查卡</h2>
+
+<h3 id="ch09-1">寄生参数量级</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">走线电感</div><div class="e">≈ 1 nH/mm（1 oz 铜、1 mm 宽）；对功率路径短而宽</div></div>
+  <div class="fc"><div class="h">过孔电感</div><div class="e">≈ 0.5~2 nH/个；大电流换层用过孔阵列</div></div>
+  <div class="fc"><div class="h">感生电压</div><div class="e"><i>v</i> = <i>L</i>·d<i>i</i>/d<i>t</i>（10 nH × 2 A/ns = 20 V）</div></div>
+  <div class="fc"><div class="h">振铃频率</div><div class="e"><i>f</i><sub>ring</sub> = 1/(2π√(<i>L</i><sub>loop</sub><i>C</i><sub>oss</sub>))</div></div>
+</div>
+
+<h3 id="ch09-2">热回路与层叠</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">热回路定义</div><div class="e">开关沿 di/dt 电流在器件 ↔ 最近高频电容间的回路</div></div>
+  <div class="fc"><div class="h">高频去耦容</div><div class="e">0.1~10 μF 陶瓷，跨接热回路两端（位置 &gt; 容量）</div></div>
+  <div class="fc"><div class="h">层叠原则</div><div class="e">每个大电流层紧贴完整地平面；信号夹在平面之间</div></div>
+  <div class="fc"><div class="h">地划分</div><div class="e">PGND / SGND 单点汇接；去耦电容回流跟各自地走</div></div>
+</div>
+
+<h3 id="ch09-3">驱动回路与 Kelvin</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">共源电感反电动势</div><div class="e"><i>v</i><sub>LS</sub> = <i>L</i><sub>S</sub>·d<i>i</i>/d<i>t</i>，V<sub>GS,eff</sub> = V<sub>GG</sub> − v<sub>LS</sub></div></div>
+  <div class="fc"><div class="h">Kelvin 布线三原则</div><div class="e">脚 3 独立回驱动器 · 不碰 PGND · 回路独立成小环</div></div>
+  <div class="fc"><div class="h">Kelvin 收益参考</div><div class="e">示例工况（约 2 kW PFC）：效率 ≈ +0.3%，壳温 ≈ −20°C；随器件/工况而变</div></div>
+  <div class="fc"><div class="h">栅极回路</div><div class="e">往返同层紧邻；R<sub>g</sub> 贴管脚；上/下管回流独立</div></div>
+</div>
+
+<h3 id="ch09-4">实测验证</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">关断沿法反推电感</div><div class="e"><i>L</i><sub>loop</sub> ≈ Δ<i>V</i> / (d<i>i</i>/d<i>t</i>)（一阶）</div></div>
+  <div class="fc"><div class="h">振铃法反推电感</div><div class="e"><i>L</i><sub>loop</sub> ≈ 1/[(2π<i>f</i><sub>ring</sub>)²·<i>C</i><sub>eq</sub>]（一阶）</div></div>
+  <div class="fc"><div class="h">双脉冲三段</div><div class="e">充电（L 储能）→ 续流（体二极管）→ 关断（ΔV = Lσ·di/dt）</div></div>
+  <div class="fc"><div class="h">合理量级参照</div><div class="e">分立半桥 10~40 nH；叠层模块 &lt; 5 nH</div></div>
+</div>
+
+<h2 id="ch10"><span class="num">10</span>自测：检查你是否真的掌握了</h2>
+<p>答案折叠在题目下方。先自己想，再展开对照。</p>
+
+<details>
+<summary>1 · 为什么连续电流路径不需要"小"，只需要"宽"？</summary>
+<p>寄生电感只有在电流变化（di/dt）时才产生电压；连续路径电流近似恒定，电感两端压降 ≈ 0，它只贡献 I²R 损耗——所以要宽（低电阻）。脉冲路径每个开关沿都有巨大 di/dt，电感直接变成电压源与谐振腔——所以要面积小。</p>
+</details>
+
+<details>
+<summary>2 · 20 nH 的热回路在 3 A/ns 关断下产生多大尖峰？对 650 V SiC 意味着什么？</summary>
+<p>V = L·di/dt = 20 nH × 3 A/ns = 60 V。叠加在母线（如 400 V）上后 V<sub>DS</sub> 达 460 V，占耐压 71%——还没算振铃过冲与降额要求。这就是热回路电感直接吃掉器件安全裕量的算术。</p>
+</details>
+
+<details>
+<summary>3 · 板上挂着 470 μF 电解电容，为什么热回路照样振铃？</summary>
+<p>高频下电容的阻抗由 ESL 决定（jω·ESL），且电解电容物理上无法贴近热回路。di/dt 电流的频谱在 MHz 级以上，需要 0.1~10 μF 陶瓷电容"骑"在回路两端提供就近回流；大容量电容只在低频段有用。</p>
+</details>
+
+<details>
+<summary>4 · Kelvin 源极改善开关速度的机理是什么？</summary>
+<p>把驱动参考地与功率回流分离后，共源电感不再坐在驱动回路里：开通时源极电感上的 v = L·di/dt 反电动势不再削减有效 V<sub>GS</sub>，负反馈解除，di/dt 恢复到由驱动强度与栅极网络决定的设计值，开关沿变快、开关损耗下降。</p>
+</details>
+
+<details>
+<summary>5 · 四脚管买回来，怎样一个接法会让它退化成三脚管？</summary>
+<p>把驱动源极（脚 3）就近接入功率地平面、让驱动电流从 PGND 回流。此时驱动回路照样穿过功率路径，共源电感分文未减。Kelvin 源极必须独立走线回驱动器 GND，与功率地仅在器件附近单点相连。</p>
+</details>
+
+<details>
+<summary>6 · 层叠里"信号层夹在完整平面之间"解决的是什么问题？</summary>
+<p>回流路径问题。高速信号（含开关节点检测、采样线）的回流在最近的完整平面上镜像分布；夹在平面之间使回流环路面积最小、阻抗受控、对外辐射和受扰同时降低。信号一旦跨分割，回流绕行，面积与串扰一起恶化。</p>
+</details>
+
+<details>
+<summary>7 · 热风焊盘用在下管源极焊盘上，代价是什么？</summary>
+<p>辐条把焊盘与地平面隔开，功率回流被迫走几根细辐条——串联电阻（mΩ 级）与电感（nH 级）同时进入安培级脉冲回路：增加损耗、抬高源极电位跳动、并把共源电感加回来。功率焊盘应实心全连接。</p>
+</details>
+
+<details>
+<summary>8 · 双脉冲测试的三个阶段各在"体检"什么？</summary>
+<p>① 充电段建立目标电流（设定工况）；② 续流段检验体二极管/续流通路；③ 第二次开通沿看开通特性（di/dt、共源电感、反向恢复），长脉冲末端关断沿看换流回路电感（ΔV = L·di/dt）。两个关键观察对象正好对应布局的两大回路。</p>
+</details>
+
+<details>
+<summary>9 · 实测关断尖峰 ΔV = 12 V、di/dt = 0.4 A/ns，回路电感多少？合不合理？</summary>
+<p>L = 12 V ÷ (0.4 A/ns) = 30 nH。落在分立半桥布局 10~40 nH 的正常区间，合理。若算出几百 nH，先怀疑测量（探头带宽、接地环）或读数（di/dt 的取值段），再怀疑布局。</p>
+</details>
+
+<details>
+<summary>10 · 近场探测中，H 场环和 E 场短杆分别找什么？</summary>
+<p>H 场环找电流环：贴近板面扫描，辐射峰对应 di/dt 回路的位置与大小——验证热回路是否真的小、抓意外环路；E 场短杆找电压节点：开关节点、散热器耦合等 dv/dt 强点。两者与传导 EMI 频谱对账后即可锁定主辐射源。</p>
+</details>
+
+<h2 id="ch11"><span class="num">11</span>参考资料与图片来源</h2>
+<p>本文所有插图的原始出处与延伸阅读，按类别列出。图片版权归原作者所有。</p>
+
+<h3 id="ch11-1">原厂应用笔记（本文图片来源）</h3>
+<ul>
+<li><b>ADI（凌力尔特）<a href="https://www.analog.com/cn/resources/app-notes/an-136.html" target="_blank" rel="noopener">AN-136《PCB Layout Considerations for Non-Isolated Switching Power Supplies》</a></b> —— 本文 Figure 1–8、12–14 的出处：层叠、连续/脉冲路径、hot loop、输入电容排障案例、焊盘处理、栅极走线、Kelvin 电流采样。布局类应用笔记的标杆，强烈建议读原文。<b>全文中文翻译见本站：<a href="an136-pcb-layout-cn.html">AN-136 原文中文全译</a></b>。</li>
+<li><b>TI / National <i>AN-1149（SNVA021）《Layout Guidelines for Switching Power Supplies》</i></b> —— 同类主题的姊妹篇：热回路、地平面与元器件摆放的图解版。</li>
+<li><b>Wolfspeed《SiC MOSFET PCB 布局技术指南》</b> —— SiC 场景下的布局专项指南（换流回路量化、开尔文封装布线）。</li>
+<li><b>Infineon EiceDRIVER 系列应用笔记</b> —— 隔离驱动布局、栅极振铃与共源电感对策。</li>
+</ul>
+
+<h3 id="ch11-2">技术文章</h3>
+<ul>
+<li><b><a href="https://m.leirte.com/sys-nd/3052.html" target="_blank" rel="noopener">《MOSFET 多出来的一只 Source 脚，到底有什么用？——通俗理解 Kelvin Source Concept》</a></b> —— 本文 Kelvin 章节全部插图的出处：三脚/四脚对比、共源电感机理、四线法类比、功率等级与器件类型的数据汇总。</li>
+<li><b><a href="https://zhuanlan.zhihu.com/p/20507267367" target="_blank" rel="noopener">知乎《SiC 碳化硅 MOSFET 功率器件双脉冲测试方法介绍》</a></b> —— 本文双脉冲章节插图的出处：测试时序、电流路径与波形读图。</li>
+<li><b><a href="https://www.rohde-schwarz.com/au/knowledge-center/events/tips-and-tricks-on-double-pulse-testing-for-power-electronics_255100-1198336.html" target="_blank" rel="noopener">Rohde &amp; Schwarz《Tips and tricks on double-pulse testing for power electronics》</a></b> —— 双脉冲测试的仪器方法学（探头、去嵌、时序技巧）网络研讨。</li>
+</ul>
+
+<h3 id="ch11-3">工具与标准</h3>
+<ul>
+<li><b>IPC-2152</b> —— 走线载流能力设计曲线（连续路径的宽度核算依据）</li>
+<li><b>IPC-2141A</b> —— 受控阻抗设计（信号层与平面间距的层叠依据）</li>
+<li><b>CISPR 25 / CISPR 32</b> —— 车载与多媒体设备传导/辐射 EMI 限值（近场排查的对账基准）</li>
+<li><b>工具链</b>：Altium / Cadence / KiCad 的规则驱动布局（回路 DRC）；近场探头套件；双脉冲测试台架（隔离驱动 + 无感负载电阻 + 高压差分探头 + 电流探头）</li>
+</ul>
+
+<footer>
+<p>本页是「电力电子技能体系 · 实现层 04 PCB 与功率布局」的配套学习文档。上游：<a href="small-signal-modeling.html">小信号建模</a> · <a href="circuit-analysis.html">电路与系统分析</a>；返回 <a href="index.html">技能分层地图</a>。</p>
+</footer>
+
+</div>
+
+<!--TOC-SHELLCLOSE-BEGIN-->
+</main>
+</div>
+<!--TOC-SHELLCLOSE-END-->
+<!--TOC-WIDGET-BEGIN-->
+<div class="progress" id="progress"></div>
+<button class="toc-fab" id="tocFab" type="button" aria-controls="tocPanel" aria-expanded="false" aria-haspopup="true">目录</button>
+<div class="toc-scrim" id="tocScrim"></div>
+<aside class="toc-panel" id="tocPanel" aria-label="目录导航">
+<div class="toc-panel-head"><span>目录</span><button class="toc-close" id="tocClose" type="button" aria-label="关闭目录">&#10005;</button></div>
+<div class="toc-panel-body" id="tocPanelBody"></div>
+<a class="toc-top" href="#top" id="tocTop">回到顶部</a>
+</aside>
+<script>
+(function(){
+  var fab=document.getElementById('tocFab'),
+      panel=document.getElementById('tocPanel'),
+      scrim=document.getElementById('tocScrim'),
+      pbody=document.getElementById('tocPanelBody'),
+      sbody=document.getElementById('sidenavBody'),
+      progress=document.getElementById('progress');
+  var grid=document.querySelector('#toc .toc-grid');
+  if(grid&&pbody){ pbody.appendChild(grid.cloneNode(true)); }
+  var links=[].slice.call(document.querySelectorAll('.toc-ch-link'));
+  var heads=[].slice.call(document.querySelectorAll('h2[id]'));
+  var closeBtn=document.getElementById('tocClose');
+  function open(){
+    panel.classList.add('show'); scrim.classList.add('show');
+    if(fab) fab.setAttribute('aria-expanded','true');
+    if(closeBtn) closeBtn.focus();
+  }
+  function shut(){
+    var wasOpen=panel.classList.contains('show');
+    panel.classList.remove('show'); scrim.classList.remove('show');
+    if(fab){ fab.setAttribute('aria-expanded','false'); if(wasOpen) fab.focus(); }
+  }
+  if(fab){ fab.addEventListener('click',open); }
+  closeBtn.addEventListener('click',shut);
+  scrim.addEventListener('click',shut);
+  document.getElementById('tocTop').addEventListener('click',shut);
+  pbody.addEventListener('click',function(e){ if(e.target.closest('a')) shut(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') shut(); });
+
+  /* 目录统计自动生成：章 = h2[id]，节 = h3[id]，图 = figure */
+  var meta=document.getElementById('tocMeta');
+  if(meta){
+    var chN=document.querySelectorAll('h2[id]').length;
+    var secN=document.querySelectorAll('h3[id]').length;
+    var figN=document.querySelectorAll('figure').length;
+    meta.textContent=chN+' 章 · '+secN+' 节 · '+figN+' 张图';
+  }
+
+  var last;
+  function update(){
+    var y=window.scrollY||document.documentElement.scrollTop;
+    var max=document.documentElement.scrollHeight-window.innerHeight;
+    progress.style.width=(max>0?(y/max*100):0)+'%';
+    var cur=null;
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=130) cur=heads[i].id;
+    }
+    if(cur===last) return;
+    last=cur;
+    var act=null;
+    for(var j=0;j<links.length;j++){
+      var on=links[j].getAttribute('href')==='#'+cur;
+      links[j].classList.toggle('active',on);
+      if(on&&!act) act=links[j];
+    }
+    /* 让侧栏里被高亮的那一条始终留在可视区内（已可见时不动，避免抢滚动） */
+    if(act&&sbody){
+      var r=act.getBoundingClientRect(), b=sbody.getBoundingClientRect();
+      if(r.top<b.top) sbody.scrollTop-=(b.top-r.top)+14;
+      else if(r.bottom>b.bottom) sbody.scrollTop+=(r.bottom-b.bottom)+14;
+    }
+  }
+  var ticking=false;
+  window.addEventListener('scroll',function(){
+    if(ticking) return;
+    ticking=true;
+    window.requestAnimationFrame(function(){ update(); ticking=false; });
+  },{passive:true});
+  window.addEventListener('resize',function(){ last=undefined; update(); });
+  update();
+})();
+</script>
+<!--TOC-WIDGET-END-->
+</body>
+</html>

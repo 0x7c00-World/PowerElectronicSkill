@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电力电子工程师技能体系</title>
+<style>
+:root{
+  --page:#f6f6f4; --card:#ffffff; --text:#1b1b19; --muted:#5f5e5a;
+  --border:rgba(0,0,0,.12); --border-strong:rgba(0,0,0,.22);
+  --accent:#185FA5; --accent-soft:#E6F1FB;
+  --t1-fill:#F1EFE8; --t1-stroke:#888780; --t1-title:#2C2C2A; --t1-sub:#5F5E5A;
+  --t2-fill:#E6F1FB; --t2-stroke:#185FA5; --t2-title:#0C447C; --t2-sub:#185FA5;
+  --warn:#993C1D; --ok:#3B6D11;
+  --shadow:rgba(0,0,0,.13);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --page:#151514; --card:#1f1f1e; --text:#eceae6; --muted:#a3a29d;
+    --border:rgba(255,255,255,.14); --border-strong:rgba(255,255,255,.26);
+    --accent:#85B7EB; --accent-soft:#0C447C;
+    --t1-fill:#2C2C2A; --t1-stroke:#B4B2A9; --t1-title:#D3D1C7; --t1-sub:#B4B2A9;
+    --t2-fill:#0C447C; --t2-stroke:#85B7EB; --t2-title:#B5D4F4; --t2-sub:#85B7EB;
+    --warn:#F0997B; --ok:#97C459;
+    --shadow:rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; padding:40px 24px 80px;
+  background:var(--page); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15px; line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:960px;margin:0 auto;}
+h1{font-size:28px;font-weight:600;letter-spacing:-.3px;margin:0 0 8px;}
+h2{font-size:19px;font-weight:600;margin:52px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+h3{font-size:15px;font-weight:600;margin:28px 0 10px;}
+p{margin:0 0 14px;}
+.lead{color:var(--muted);font-size:15px;margin-bottom:6px;}
+.callout{
+  background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);
+  border-radius:10px;padding:16px 20px;margin:20px 0 8px;font-size:15px;
+}
+.callout strong{color:var(--accent);}
+.tier{margin-bottom:22px;}
+.tier-label{font-size:12px;font-weight:600;letter-spacing:.6px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;}
+.node{border-radius:10px;padding:14px 16px;border:1px solid;}
+.node .t{font-size:14px;font-weight:600;margin-bottom:4px;}
+.node .s{font-size:12.5px;line-height:1.5;}
+.n-gray{background:var(--t1-fill);border-color:var(--t1-stroke);}
+.n-gray .t{color:var(--t1-title);} .n-gray .s{color:var(--t1-sub);}
+.n-blue{background:var(--t2-fill);border-color:var(--t2-stroke);}
+.n-blue .t{color:var(--t2-title);} .n-blue .s{color:var(--t2-sub);}
+a.node{display:block;text-decoration:none;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;}
+a.node:hover{transform:translateY(-2px);box-shadow:0 5px 18px var(--shadow);border-color:var(--accent);}
+a.node .t{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+a.node .go{font-size:11.5px;font-weight:400;opacity:.75;flex:none;}
+.map-hint{font-size:13px;color:var(--muted);margin:14px 0 0;padding-left:2px;}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;table-layout:fixed;}
+th{text-align:left;font-weight:600;font-size:12.5px;letter-spacing:.4px;color:var(--muted);
+   padding:10px 14px;border-bottom:1px solid var(--border-strong);}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+td:first-child{font-weight:500;color:var(--text);}
+tbody tr:last-child td{border-bottom:none;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card table{margin:0;}
+.card th{background:var(--card);}
+ol,ul{padding-left:22px;margin:0 0 14px;}
+li{margin-bottom:7px;}
+.mark{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:5px;
+      background:var(--accent-soft);color:var(--accent);margin-right:8px;vertical-align:1px;}
+.keypoint{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:12px;}
+.keypoint h4{margin:0 0 6px;font-size:15px;font-weight:600;}
+.keypoint p{margin:0;font-size:14px;color:var(--muted);}
+.ref{font-size:14px;margin-bottom:8px;}
+.ref b{font-weight:600;}
+.progress-wrap{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+.bar{flex:1;height:7px;border-radius:4px;background:var(--border);overflow:hidden;}
+.bar span{display:block;height:100%;width:0;background:var(--accent);transition:width .25s ease;}
+.count{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;min-width:64px;text-align:right;}
+.check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;}
+.check-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.check-card .h{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;}
+.check-card label{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;padding:4px 0;cursor:pointer;}
+.check-card input{margin:4px 0 0;flex:none;accent-color:var(--accent);}
+.check-card input:checked + span{color:var(--muted);text-decoration:line-through;}
+.reset{margin-top:14px;background:none;border:1px solid var(--border-strong);color:var(--muted);
+       border-radius:7px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit;}
+.reset:hover{border-color:var(--accent);color:var(--accent);}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--border);
+       font-size:12.5px;color:var(--muted);}
+@media (max-width:620px){
+  body{padding:24px 16px 60px;}
+  h1{font-size:22px;}
+  table{font-size:13px;}
+  th,td{padding:9px 10px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>电力电子工程师技能体系</h1>
+<p class="lead">五层能力地图 · 可自检的掌握标志 · 工具链与一手资料清单</p>
+
+<div class="callout">
+  <strong>一句话结论</strong>：入门靠拓扑，吃饭靠磁性元件和环路，上限靠器件物理和系统理解。
+</div>
+
+<h2>一、技能分层地图</h2>
+<p>从底到顶五层，每层三项。下层是上层的必要条件，但不必等学完再往上走——按项目需求交叉补齐效率更高。</p>
+<p class="map-hint">标有「学习文档 ↗」的模块已配套深度文档，点击可进入。</p>
+
+<div class="tier">
+  <div class="tier-label">01 基础层 · 数理与器件</div>
+  <div class="grid">
+    <a class="node n-gray" href="circuit-analysis.html"><div class="t"><span>电路与系统分析</span><span class="go">学习文档 ↗</span></div><div class="s">网络定理 · 拉普拉斯变换 · 模电数电</div></a>
+    <a class="node n-gray" href="control-theory.html"><div class="t"><span>控制理论基础</span><span class="go">学习文档 ↗</span></div><div class="s">经典控制 · 状态空间</div></a>
+    <a class="node n-gray" href="electromagnetics.html"><div class="t"><span>电磁学与器件物理</span><span class="go">学习文档 ↗</span></div><div class="s">磁场与磁路 · 半导体物理</div></a>
+  </div>
+</div>
+
+<div class="tier">
+  <div class="tier-label">02 核心层 · 功率变换</div>
+  <div class="grid">
+    <div class="node n-blue"><div class="t">功率拓扑</div><div class="s">Buck · Boost · 桥式 · LLC · DAB</div></div>
+    <a class="node n-blue" href="power-devices-drivers.html"><div class="t"><span>功率器件与驱动</span><span class="go">学习文档 ↗</span></div><div class="s">SiC · GaN · IGBT · 隔离驱动</div></a>
+    <a class="node n-blue" href="magnetics.html"><div class="t"><span>磁性元件设计</span><span class="go">学习文档 ↗</span></div><div class="s">电感 · 变压器 · 平面磁件</div></a>
+  </div>
+</div>
+
+<div class="tier">
+  <div class="tier-label">03 建模层 · 控制与环路</div>
+  <div class="grid">
+    <a class="node n-blue" href="small-signal-modeling.html"><div class="t"><span>小信号建模</span><span class="go">学习文档 ↗</span></div><div class="s">状态空间平均法 · PWM switch</div></a>
+    <a class="node n-blue" href="loop-compensation.html"><div class="t"><span>环路补偿设计</span><span class="go">学习文档 ↗</span></div><div class="s">Type II · III · Bode · 裕度</div></a>
+    <a class="node n-blue" href="digital-control.html"><div class="t"><span>数字控制实现</span><span class="go">学习文档 ↗</span></div><div class="s">DSP · Z 域 · 离散化</div></a>
+  </div>
+</div>
+
+<div class="tier">
+  <div class="tier-label">04 实现层 · 工程与硬件</div>
+  <div class="grid">
+    <a class="node n-blue" href="pcb-power-layout.html"><div class="t"><span>PCB 与功率布局</span><span class="go">学习文档 ↗</span></div><div class="s">寄生参数 · 环路面积 · Kelvin</div></a>
+    <a class="node n-blue" href="an136-pcb-layout-cn.html"><div class="t"><span>AN-136 原文中文全译</span><span class="go">译文 ↗</span></div><div class="s">非隔离开关电源 PCB 布局考量</div></a>
+    <a class="node n-blue" href="thermal.html"><div class="t"><span>热管理与散热</span><span class="go">学习文档 ↗</span></div><div class="s">热阻网络 · 风冷液冷 · TIM</div></a>
+    <a class="node n-blue" href="measurement.html"><div class="t"><span>测试与测量</span><span class="go">学习文档 ↗</span></div><div class="s">双脉冲 · 环路分析仪</div></a>
+  </div>
+</div>
+
+<div class="tier">
+  <div class="tier-label">05 系统层 · 合规与应用</div>
+  <div class="grid">
+    <a class="node n-blue" href="emc-safety.html"><div class="t"><span>EMC 与安规</span><span class="go">学习文档 ↗</span></div><div class="s">CISPR · 爬电距离 · 电气间隙</div></a>
+    <div class="node n-blue"><div class="t">可靠性与寿命</div><div class="s">降额 · MTBF · 热循环</div></div>
+    <div class="node n-blue"><div class="t">应用系统集成</div><div class="s">光伏 · 储能 · OBC · 服务器电源</div></div>
+  </div>
+</div>
+
+<h2>二、各层的实际内容与掌握标志</h2>
+
+<h3>01 基础层 · 数理与器件</h3>
+<p>这一层不是学完就扔的课。真正天天用的是：在拉普拉斯域手推传递函数、看懂极零点分布、读器件 datasheet 时能判断那条 Coss 曲线意味着什么。控制理论里<strong>经典控制</strong>（Bode / Nyquist / 裕度）用得最多，现代控制（状态空间）主要服务于建模。</p>
+<p><span class="mark">掌握标志</span>能独立手推传递函数并解释极零点；能读懂器件手册中开关特性曲线对设计的约束。</p>
+
+<h3>02 核心层 · 功率变换</h3>
+<p>拓扑从 Buck / Boost 这类非隔离起步，再进反激 / 正激 / 半桥 / 全桥，最后到 LLC、DAB 这类软开关与谐振变换器。器件部分在 SiC / GaN 时代变了：<strong>开关损耗、dv/dt、体二极管反向恢复、驱动回路寄生电感</strong>，这几项决定了你能不能把开关频率推上去。</p>
+<p>磁性元件是这一层的硬骨头，也是难度最容易被低估的部分——磁芯材料选型、Steinmetz 损耗模型、趋肤与邻近效应、气隙与窗口利用率、平面变压器与集成磁件，全靠算例和经验堆出来。</p>
+<p><span class="mark">掌握标志</span>能从规格倒推拓扑选型；能逐项算准开关损耗、导通损耗、栅极损耗、Coss 损耗；能独立设计电感与变压器并给出温升估算。</p>
+
+<h3>03 建模层 · 控制与环路</h3>
+<p>链路是：小信号建模（状态空间平均法或 PWM switch 模型）→ 传递函数 → Type II / III 补偿器 → 相位裕度留 45°~60°、增益裕度 ≥10 dB。数字控制要额外处理<strong>采样延时、Z 域离散化、量化误差</strong>，其中采样延时带来的相位损失往往是数字环路翻车的主因。</p>
+<p><span class="mark">掌握标志</span>能建模、能画 Bode、能设计补偿器、能把数字环路落地到 DSP 并实测验证。</p>
+
+<h3>04 实现层 · 工程与硬件</h3>
+<p>功率回路面积、寄生电感、Kelvin 连接、去耦布局；热阻网络从结到环境逐级计算；测量靠差分探头、电流探头、罗氏线圈，调试靠双脉冲测试台和环路分析仪。这一层是"图纸"和"产品"之间的全部距离。</p>
+<p><span class="mark">掌握标志</span>功率布局一次过 EMC；能从结温反推所需热阻并选定散热方案；能独立搭双脉冲测试台。</p>
+
+<h3>05 系统层 · 合规与应用</h3>
+<p>CISPR 22 / 25 的 EMI 限值、IEC / UL / GB 的爬电与电气间隙、降额准则、MTBF 预测，以及具体应用场景（光伏、储能 PCS、OBC、服务器电源）的行业规范。</p>
+<p><span class="mark">掌握标志</span>读懂安规并算清间距；能出降额与寿命评估；带过一款产品从设计走到量产。</p>
+
+<h2>三、自检清单</h2>
+<p>勾选你<strong>已经能独立交付</strong>的项，右侧实时统计覆盖度。比空想有用——很多人卡在"以为会"和"真做过"之间。</p>
+
+<div class="progress-wrap">
+  <div class="bar"><span id="bar"></span></div>
+  <div class="count" id="count">0 / 15</div>
+</div>
+
+<div class="check-grid" id="checkGrid">
+  <div class="check-card">
+    <div class="h">01 基础层</div>
+    <label><input type="checkbox" data-k="b1"><span>独立做完整电路分析</span></label>
+    <label><input type="checkbox" data-k="b2"><span>手推传递函数与极点零点</span></label>
+    <label><input type="checkbox" data-k="b3"><span>看懂器件 datasheet 关键曲线</span></label>
+  </div>
+  <div class="check-card">
+    <div class="h">02 核心层</div>
+    <label><input type="checkbox" data-k="c1"><span>从规格倒推拓扑选型</span></label>
+    <label><input type="checkbox" data-k="c2"><span>算准开关与导通损耗</span></label>
+    <label><input type="checkbox" data-k="c3"><span>独立设计电感与变压器</span></label>
+  </div>
+  <div class="check-card">
+    <div class="h">03 建模层</div>
+    <label><input type="checkbox" data-k="m1"><span>建立小信号模型</span></label>
+    <label><input type="checkbox" data-k="m2"><span>设计补偿器并留够裕度</span></label>
+    <label><input type="checkbox" data-k="m3"><span>数字环路落地到 DSP</span></label>
+  </div>
+  <div class="check-card">
+    <div class="h">04 实现层</div>
+    <label><input type="checkbox" data-k="i1"><span>功率布局一次过 EMC</span></label>
+    <label><input type="checkbox" data-k="i2"><span>算热阻并选定散热方案</span></label>
+    <label><input type="checkbox" data-k="i3"><span>独立完成双脉冲测试</span></label>
+  </div>
+  <div class="check-card">
+    <div class="h">05 系统层</div>
+    <label><input type="checkbox" data-k="s1"><span>读懂安规并算清间距</span></label>
+    <label><input type="checkbox" data-k="s2"><span>做降额与寿命评估</span></label>
+    <label><input type="checkbox" data-k="s3"><span>带过一款产品从设计到量产</span></label>
+  </div>
+</div>
+<button class="reset" id="reset">清空重来</button>
+
+<h2>四、工具链</h2>
+<p>学校通常不教，但直接决定效率。</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:34%">用途</th><th>常用工具</th></tr></thead>
+<tbody>
+<tr><td>开关级 / 环路仿真</td><td>LTspice、PSIM、PLECS、SIMPLIS</td></tr>
+<tr><td>控制与算法</td><td>MATLAB / Simulink</td></tr>
+<tr><td>磁场与寄生参数</td><td>Ansys Maxwell、Q3D Extractor、JMAG</td></tr>
+<tr><td>热仿真</td><td>Ansys Icepak、FloTHERM</td></tr>
+<tr><td>PCB 设计</td><td>Altium、Cadence Allegro、KiCad</td></tr>
+<tr><td>计算与自动化</td><td>Mathcad、Python</td></tr>
+<tr><td>测量仪器</td><td>Bode-100 环路分析仪、功率分析仪、热像仪、双脉冲测试台</td></tr>
+<tr><td>嵌入式</td><td>TI C2000、STM32（C / C++）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>五、三个决定上限的点</h2>
+<div class="keypoint">
+  <h4>1 · 能算损耗和热，才算入门</h4>
+  <p>拓扑抄得会的人很多，能把损耗拆到每一项、把热阻网络算通、让设计一次过温升和 EMC 的人很少。这是"能跑"和"能量产"的分水岭。</p>
+</div>
+<div class="keypoint">
+  <h4>2 · 磁性元件是最难被替代的护城河</h4>
+  <p>拓扑是公开知识，谁都能查；磁件设计涉及材料、绕组结构、损耗与寄生的强耦合，只能靠做出来。这也是经验价值最集中的地方。</p>
+</div>
+<div class="keypoint">
+  <h4>3 · 建模必须和实测闭环</h4>
+  <p>会跑仿真不是本事；能先预测、再实测、再解释偏差，才叫掌握。环路分析仪和双脉冲测试台就是这条闭环的两把尺子。</p>
+</div>
+
+<h2>六、参考书与一手资料</h2>
+<h3>教科书</h3>
+<p class="ref"><b>Erickson &amp; Maksimović, <i>Fundamentals of Power Electronics</i></b> —— 建模与拓扑的基准参考</p>
+<p class="ref"><b>Basso, <i>Designing Control Loops for Linear and Switching Power Supplies</i></b> —— 环路设计实操</p>
+<p class="ref"><b>Colonel Wm. T. McLyman, <i>Transformer and Inductor Design Handbook</i></b> —— 磁件设计手册</p>
+<p class="ref"><b>Ned Mohan, <i>Power Electronics: Converters, Applications and Design</i></b> —— 覆盖面广的教材</p>
+
+<h3>原厂应用笔记（一手，优先看）</h3>
+<ul>
+<li><b>TI</b>：SLUP 系列应用笔记、<i>Power Topologies Handbook</i>、电源设计参考手册</li>
+<li><b>Infineon / onsemi</b>：SiC MOSFET 驱动设计与功率布局指南</li>
+<li><b>Wolfspeed</b>：双脉冲测试（DPT）手册、SiC 器件选型指南</li>
+<li><b>ADI / Linear Technology</b>：开关稳压器环路补偿与设计笔记</li>
+</ul>
+
+<h3>会议与期刊</h3>
+<ul>
+<li>APEC、ECCE、PCIM —— 工业界最新实践</li>
+<li>IEEE TPEL、IEEE JESTPE —— 学术前沿</li>
+</ul>
+
+<h2>七、按岗位方向的侧重差异</h2>
+<p>技能权重随方向变化，选方向时对号入座。</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:32%">方向</th><th style="width:38%">最吃重的技能</th><th>相对次要</th></tr></thead>
+<tbody>
+<tr><td>电源砖 / 适配器</td><td>磁性元件、PCB 布局、开关损耗</td><td>系统级安规</td></tr>
+<tr><td>电机驱动 / 变频器</td><td>功率器件、控制环路、过载与保护</td><td>平面磁件</td></tr>
+<tr><td>光伏 / 储能 PCS</td><td>系统集成、可靠性、并网标准</td><td>超高频磁件</td></tr>
+<tr><td>车载 OBC / DCDC</td><td>器件可靠性、EMC、宽温域设计</td><td>电网侧规范</td></tr>
+</tbody>
+</table>
+</div>
+
+<footer>
+电力电子技能体系 · 自检进度保存在本地浏览器，换设备不跟随同步。
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var KEY='pe-skill-checklist';
+  var boxes=Array.prototype.slice.call(document.querySelectorAll('#checkGrid input[type=checkbox]'));
+  var bar=document.getElementById('bar');
+  var count=document.getElementById('count');
+
+  function render(){
+    var n=boxes.filter(function(b){return b.checked;}).length;
+    count.textContent=n+' / '+boxes.length;
+    bar.style.width=(n/boxes.length*100)+'%';
+  }
+  function save(){
+    var state={};
+    boxes.forEach(function(b){ state[b.dataset.k]=b.checked; });
+    try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){}
+  }
+  function load(){
+    try{
+      var raw=localStorage.getItem(KEY);
+      if(!raw) return;
+      var state=JSON.parse(raw);
+      boxes.forEach(function(b){ if(state[b.dataset.k]) b.checked=true; });
+    }catch(e){}
+  }
+
+  boxes.forEach(function(b){
+    b.addEventListener('change',function(){ render(); save(); });
+  });
+  document.getElementById('reset').addEventListener('click',function(){
+    boxes.forEach(function(b){ b.checked=false; });
+    render(); save();
+  });
+
+  load(); render();
+})();
+</script>
+</body>
+</html>

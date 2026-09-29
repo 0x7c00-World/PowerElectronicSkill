@@ -1,0 +1,29 @@
+# ---------- 不参与发布的本地内容 ----------
+
+# 写作/计算源码与中间产物（约 300 MB）
+_src/
+_check_refs.py
+
+# 根页面的整份重复副本（根页面已自带响应式 media query）
+mobile/
+
+# 回收站与助手工作目录
+.trash/
+.workbuddy/
+.workbuddy-ai/
+
+# 历史备份、旧版本
+*.bak-*.html
+*.old
+
+# 日志
+*.log
+
+# ---------- 系统与编辑器 ----------
+Thumbs.db
+desktop.ini
+.DS_Store
+$RECYCLE.BIN/
+*.swp
+.idea/
+.vscode/

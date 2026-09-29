@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>环路补偿设计 · Type II / III · Bode · 裕度</title>
+<style>
+:root{
+  --page:#f6f6f4; --card:#ffffff; --text:#1b1b19; --muted:#5f5e5a; --faint:#8a8983;
+  --border:rgba(0,0,0,.12); --border-strong:rgba(0,0,0,.22);
+  --accent:#185FA5; --accent-soft:#E6F1FB;
+  --t1-fill:#F1EFE8; --t1-stroke:#888780; --t1-title:#2C2C2A; --t1-sub:#5F5E5A;
+  --t2-fill:#E6F1FB; --t2-stroke:#185FA5; --t2-title:#0C447C; --t2-sub:#185FA5;
+  --warn:#993C1D; --warn-soft:#FAECE7; --ok:#3B6D11; --ok-soft:#EAF3DE;
+  --code:#f0efeb; --shadow:rgba(0,0,0,.13);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --page:#151514; --card:#1f1f1e; --text:#eceae6; --muted:#a3a29d; --faint:#7d7c77;
+    --border:rgba(255,255,255,.14); --border-strong:rgba(255,255,255,.26);
+    --accent:#85B7EB; --accent-soft:#0C447C;
+    --t1-fill:#2C2C2A; --t1-stroke:#B4B2A9; --t1-title:#D3D1C7; --t1-sub:#B4B2A9;
+    --t2-fill:#0C447C; --t2-stroke:#85B7EB; --t2-title:#B5D4F4; --t2-sub:#85B7EB;
+    --warn:#F0997B; --warn-soft:#4A1B0C; --ok:#97C459; --ok-soft:#173404;
+    --code:#2a2a28; --shadow:rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; padding:36px 24px 80px;
+  background:var(--page); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15px; line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.crumb{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.crumb a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;}
+.crumb a:hover{border-bottom-color:var(--accent);}
+.crumb span{color:var(--faint);margin:0 7px;}
+h1{font-size:27px;font-weight:600;letter-spacing:-.3px;margin:0 0 10px;line-height:1.35;}
+.sub{color:var(--muted);font-size:14.5px;margin:0 0 16px;}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
+.tag{font-size:12px;font-weight:500;padding:4px 11px;border-radius:6px;background:var(--accent-soft);color:var(--accent);}
+h2{font-size:19px;font-weight:600;margin:56px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+h2 .num{color:var(--faint);font-weight:500;margin-right:9px;font-variant-numeric:tabular-nums;}
+h3{font-size:15.5px;font-weight:600;margin:32px 0 10px;}
+h4{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text);}
+p{margin:0 0 14px;}
+ul,ol{padding-left:22px;margin:0 0 14px;}
+li{margin-bottom:7px;}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;
+     background:var(--code);padding:2px 6px;border-radius:4px;}
+.callout{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);
+  border-radius:10px;padding:16px 20px;margin:22px 0;}
+.callout p:last-child{margin-bottom:0;}
+.callout strong{color:var(--accent);}
+.note{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:18px 0;font-size:14px;}
+.note.warn{border-left:3px solid var(--warn);}
+.note.warn b{color:var(--warn);}
+.note.ok{border-left:3px solid var(--ok);}
+.note.ok b{color:var(--ok);}
+.note p:last-child{margin-bottom:0;}
+.chain{display:flex;flex-direction:column;margin:18px 0 6px;}
+.step{display:flex;gap:14px;padding:15px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+.step .b{font-size:14.5px;font-weight:600;margin-bottom:3px;}
+.step .d{font-size:13.5px;color:var(--muted);line-height:1.65;}
+.eq{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:14px 20px;margin:15px 0;
+  font-family:"Cambria Math",Cambria,Georgia,"Times New Roman",serif;font-size:15.5px;line-height:2.1;
+  overflow-x:auto;}
+.eq i{font-style:italic;}
+.eq .lbl,.fc .lbl{font-family:inherit;font-size:12.5px;color:var(--faint);font-style:normal;font-weight:400;}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;}
+th{text-align:left;font-weight:600;font-size:12.5px;letter-spacing:.3px;color:var(--muted);
+   padding:10px 14px;border-bottom:1px solid var(--border-strong);}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card table{margin:0;}
+figure{margin:24px 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 14px 12px;}
+figure svg{display:block;width:100%;height:auto;}
+/* 文字压在线上时（Bode 图刻度压网格线、标注压器件引线）用同底色描边做光晕，
+   把线的穿透感切掉。paint-order:stroke 保证描边画在填充下面，不会糊字形。 */
+figure svg text{paint-order:stroke;stroke:var(--card);stroke-width:3.2px;stroke-linejoin:round;}
+figcaption{font-size:12.5px;color:var(--faint);margin-top:10px;padding:0 6px;line-height:1.65;}
+figure img.figimg{display:block;width:100%;height:auto;background:#fff;
+  border:1px solid var(--border);border-radius:8px;padding:6px;}
+@media (prefers-color-scheme: dark){figure img.figimg{border-color:var(--border-strong);}}
+.src{display:block;margin-top:9px;padding:8px 11px;font-size:11.5px;line-height:1.65;
+  color:var(--muted);background:var(--accent-soft);border-radius:7px;}
+.src .tag{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 6px;margin-right:6px;
+  border-radius:5px;background:var(--accent);color:var(--card);vertical-align:1px;}
+.src .tag.own{background:var(--faint);}
+.src code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;}
+details{border:1px solid var(--border);border-radius:10px;padding:0 16px;margin-bottom:10px;background:var(--card);}
+details[open]{padding-bottom:14px;}
+summary{cursor:pointer;font-size:14px;font-weight:600;padding:13px 0;list-style:none;}
+summary::-webkit-details-marker{display:none;}
+summary::before{content:"▸";display:inline-block;margin-right:9px;color:var(--accent);}
+details[open] summary::before{content:"▾";}
+details p{margin:8px 0 0;font-size:14px;color:var(--muted);}
+.formula-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:12px;margin:18px 0;}
+.fc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.fc .h{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:9px;}
+.fc .e{font-family:"Cambria Math",Cambria,Georgia,serif;font-size:14.5px;line-height:2;overflow-x:auto;}
+.reading{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0;}
+.rc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.rc .h{font-size:13.5px;font-weight:600;margin-bottom:6px;}
+.rc .d{font-size:13px;color:var(--muted);line-height:1.6;}
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);}
+footer a{color:var(--accent);text-decoration:none;}
+footer a:hover{border-bottom:1px solid var(--accent);}
+@media (max-width:620px){
+  body{padding:22px 16px 60px;}
+  h1{font-size:21px;}
+  table{font-size:13px;}
+  th,td{padding:9px 10px;}
+  .eq{font-size:14px;padding:12px 14px;}
+  .fc .e{font-size:13px;}
+}
+
+/*TOC-CSS-BEGIN*/
+h2[id],h3[id]{scroll-margin-top:26px;}
+.progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:60;}
+
+/* ===== 左侧固定目录 + 右侧独立滚动正文 ===== */
+.shell{max-width:1300px;margin:0 auto;}
+.main{min-width:0;}
+.sidenav{display:none;}
+.sidenav-head{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;padding:15px 18px 12px;border-bottom:1px solid var(--border);}
+.sidenav-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:13px 12px 14px 16px;scrollbar-width:thin;}
+.sidenav-body::-webkit-scrollbar{width:7px;}
+.sidenav-body::-webkit-scrollbar-track{background:transparent;}
+.sidenav-body::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px;}
+.toc-title{font-size:14.5px;font-weight:600;}
+.toc-meta{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;}
+.toc-grid{column-count:1;}
+.toc-ch{break-inside:avoid;margin-bottom:13px;}
+.toc-ch:last-child{margin-bottom:0;}
+.toc-ch-link{display:block;font-size:13.5px;font-weight:600;color:var(--text);text-decoration:none;padding:3px 7px;border-radius:6px;line-height:1.5;transition:color .15s,background .15s;}
+.toc-ch-link .n{display:inline-block;min-width:23px;font-size:11.5px;font-weight:600;color:var(--faint);font-variant-numeric:tabular-nums;}
+.toc-ch-link:hover,.toc-ch-link.active{color:var(--accent);background:var(--accent-soft);}
+.toc-ch-link.active .n{color:var(--accent);}
+.toc-sub{display:block;font-size:12.5px;color:var(--muted);text-decoration:none;padding:2.5px 7px 2.5px 24px;border-radius:6px;line-height:1.45;transition:color .15s,background .15s;}
+.toc-sub:hover{color:var(--accent);background:var(--accent-soft);}
+.toc-sub.active{color:var(--accent);background:var(--accent-soft);font-weight:600;}
+.toc-top{flex:none;display:block;padding:11px 18px;border-top:1px solid var(--border);font-size:13px;color:var(--accent);text-decoration:none;}
+.toc-top:hover{background:var(--accent-soft);}
+
+@media (min-width:1000px){
+  .shell{display:grid;grid-template-columns:258px minmax(0,1fr);gap:54px;align-items:start;}
+  .sidenav{display:flex;flex-direction:column;position:sticky;top:18px;max-height:calc(100vh - 36px);
+    background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+    box-shadow:0 1px 3px var(--shadow);}
+  .main .wrap{max-width:920px;margin:0;}
+  .toc-fab{display:none;}
+}
+
+/* ===== 窄屏回退：常驻悬浮按钮 + 侧滑面板 ===== */
+.toc-fab{position:fixed;right:22px;bottom:22px;z-index:70;background:var(--card);border:1px solid var(--border-strong);color:var(--muted);border-radius:22px;padding:9px 18px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s,color .15s,border-color .15s;box-shadow:0 4px 16px var(--shadow);}
+.toc-fab.show{opacity:1;pointer-events:auto;}
+.toc-fab:hover{color:var(--accent);border-color:var(--accent);}
+.toc-scrim{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.32);z-index:80;opacity:0;pointer-events:none;transition:opacity .22s;}
+.toc-scrim.show{opacity:1;pointer-events:auto;}
+.toc-panel{position:fixed;top:0;right:0;bottom:0;width:min(340px,88vw);background:var(--page);border-left:1px solid var(--border);z-index:90;transform:translateX(101%);transition:transform .26s ease;display:flex;flex-direction:column;}
+.toc-panel.show{transform:translateX(0);}
+.toc-panel-head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border);font-size:14.5px;font-weight:600;}
+.toc-close{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;font-family:inherit;padding:2px 6px;line-height:1;}
+.toc-close:hover{color:var(--accent);}
+.toc-panel-body{flex:1;overflow-y:auto;padding:16px 20px 20px;}
+.toc-panel-body .toc-grid{column-count:1;}
+.toc-panel-body .toc-ch-link{font-size:14px;}
+.toc-panel-body .toc-sub{font-size:13px;}
+@media (max-width:999px){.toc-fab{opacity:1;pointer-events:auto;}}
+
+/* 尊重系统的"减少动效"设置 */
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;scroll-behavior:auto !important;}
+}
+
+@media print{
+  .toc-fab,.toc-scrim,.toc-panel,.progress{display:none;}
+  .shell{display:block;max-width:none;}
+  .sidenav{display:none;}
+  .main .wrap{max-width:none;}
+}
+/*TOC-CSS-END*/
+</style>
+</head>
+<body>
+<!--TOC-SHELL-BEGIN-->
+<div class="shell">
+<aside class="sidenav" id="toc" aria-label="文档目录">
+<div class="sidenav-head"><span class="toc-title">目录</span><span class="toc-meta">导读 + 12 章 · 40 节 · 10 图（7 张 MATLAB 实算）· 12 表</span></div>
+<div class="sidenav-body" id="sidenavBody">
+<div class="toc-grid">
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch00"><span class="n">00</span>导读：环路补偿在补偿什么</a>
+<a class="toc-sub" href="#ch00-1">这件事的因果链</a>
+<a class="toc-sub" href="#ch00-2">本文的主线与章节地图</a>
+<a class="toc-sub" href="#ch00-3">三种读法</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch01"><span class="n">01</span>环路增益：用开环判闭环</a>
+<a class="toc-sub" href="#ch01-1">1.1 闭环系统为什么要看开环</a>
+<a class="toc-sub" href="#ch01-2">1.2 环路增益的四要素与断点</a>
+<a class="toc-sub" href="#ch01-3">1.3 Bode 图：设计语言</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch02"><span class="n">02</span>被控对象：功率级说了算</a>
+<a class="toc-sub" href="#ch02-1">2.1 电压模式 Buck：双重极点 + ESR 零点</a>
+<a class="toc-sub" href="#ch02-2">2.2 电流模式 Buck：外电压环的低频单极点近似</a>
+<a class="toc-sub" href="#ch02-3">2.3 RHPZ：Boost / 反激的带宽天花板</a>
+<a class="toc-sub" href="#ch02-4">2.4 反馈分压 H 与调制器 Fm：最容易被漏的两项</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch03"><span class="n">03</span>稳定裕度：PM、GM 与取值</a>
+<a class="toc-sub" href="#ch03-1">3.1 相位裕度：定义与读法</a>
+<a class="toc-sub" href="#ch03-2">3.2 增益裕度：防"变聋"的保险</a>
+<a class="toc-sub" href="#ch03-3">3.3 裕度取多少：工程标准</a>
+<a class="toc-sub" href="#ch03-4">3.4 裕度与阶跃响应的对应关系</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch04"><span class="n">04</span>Type I / II / III 补偿器</a>
+<a class="toc-sub" href="#ch04-1">4.1 从误差放大器到补偿器</a>
+<a class="toc-sub" href="#ch04-2">4.2 三类电路与传递函数</a>
+<a class="toc-sub" href="#ch04-3">4.3 相位提升预算：各自的上限</a>
+<a class="toc-sub" href="#ch04-4">4.4 选型决策表</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch05"><span class="n">05</span>k 因子法与七步设计流程</a>
+<a class="toc-sub" href="#ch05-1">5.1 k 因子：把裕度变成公式</a>
+<a class="toc-sub" href="#ch05-2">5.2 七步设计流程</a>
+<a class="toc-sub" href="#ch05-3">5.3 极零点放置的经验修正</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch06"><span class="n">06</span>完整算例：12 V → 3.3 V / 10 A 电流模式 Buck（Type II）</a>
+<a class="toc-sub" href="#ch06-1">6.1 设计规格与功率级参数</a>
+<a class="toc-sub" href="#ch06-2">6.2 第 1~2 步：对象传函与穿越频率</a>
+<a class="toc-sub" href="#ch06-3">6.3 第 3~4 步：相位缺口与 k 因子</a>
+<a class="toc-sub" href="#ch06-4">6.4 第 5~6 步：传函配平与元件值</a>
+<a class="toc-sub" href="#ch06-5">6.5 第 7 步：校验（满载 / 轻载 / 大信号）</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch07"><span class="n">07</span>隔离反馈：TL431 + 光耦的补偿</a>
+<a class="toc-sub" href="#ch07-1">7.1 为什么它特殊</a>
+<a class="toc-sub" href="#ch07-2">7.2 慢通道与快通道</a>
+<a class="toc-sub" href="#ch07-3">7.3 设计要点与常见错误</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch08"><span class="n">08</span>实测验证：注入法与偏差定位</a>
+<a class="toc-sub" href="#ch08-1">8.1 环路分析仪注入法</a>
+<a class="toc-sub" href="#ch08-2">8.2 预测与实测偏差的来源</a>
+<a class="toc-sub" href="#ch08-3">8.3 验收判据清单</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch09"><span class="n">09</span>十个常见误区</a>
+
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch10"><span class="n">10</span>公式速查卡</a>
+<a class="toc-sub" href="#ch10-1">对象传函与极零点</a>
+<a class="toc-sub" href="#ch10-2">裕度判据</a>
+<a class="toc-sub" href="#ch10-3">Type I / II / III</a>
+<a class="toc-sub" href="#ch10-4">k 因子法</a>
+<a class="toc-sub" href="#ch10-5">TL431 与光耦</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch11"><span class="n">11</span>自测：检查你是否真的掌握了</a>
+
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch12"><span class="n">12</span>参考资料</a>
+<a class="toc-sub" href="#ch12-1">教科书</a>
+<a class="toc-sub" href="#ch12-2">应用笔记（原厂）</a>
+<a class="toc-sub" href="#ch12-3">深水区论文</a>
+</div>
+</div>
+</div>
+<a class="toc-top" href="#top">回到顶部</a>
+</aside>
+<main class="main">
+<!--TOC-SHELL-END-->
+<div class="wrap" id="top">
+
+<div class="crumb"><a href="index.html">电力电子技能体系</a><span>/</span>建模层 02 · 环路补偿设计</div>
+
+<h1>环路补偿设计：Type II / III · Bode · 裕度</h1>
+<p class="sub">被控对象 → 稳定裕度 → 补偿器拓扑 → k 因子 → 完整算例 → 隔离反馈 → 实测验证</p>
+<div class="tagrow">
+  <span class="tag">建模层 02</span>
+  <span class="tag">先修：拉普拉斯变换、传递函数、Bode 图</span>
+  <span class="tag">产出：补偿器传函 → 元件值 → 实测 Bode</span>
+  <span class="tag">含完整算例</span>
+</div>
+
+<div class="callout">
+  <p><strong>补偿设计是电源工程师的分水岭技能。</strong>拓扑选型抄参考设计就能过，磁性元件算错顶多是热，唯独环路——补偿没做好，电源要么烧要么啸叫要么带不动载，而且故障现象往往和原因隔了三层。它是"入门靠拓扑，吃饭靠环路"里那顿饭本身。</p>
+  <p>好消息是：补偿设计有一套高度程式化的流程。<strong>先拿到被控对象的传函，再定穿越频率和裕度目标，然后用 k 因子把缺口换算成极零点位置，最后配平增益落到元件值。</strong>整条链每一环都有公式，不需要天赋，只需要把每个量的物理含义想清楚。这份文档就沿这条链展开，第 6 章用一个完整的 12 V → 3.3 V 电流模式 Buck 算例从头走到尾。</p>
+</div>
+
+<h2 id="ch00"><span class="num">00</span>导读：环路补偿在补偿什么</h2>
+
+<h3 id="ch00-1">这件事的因果链</h3>
+<p>开关电源本身是个"有能力但没脑子"的东西：功率级能在微秒内搬动几十安培的电流，但它不知道输出该是多少。闭环控制给它装上脑子——采样输出、和基准比、用误差去调占空比。问题是这个"脑子"反应太快会自激（误差信号绕环一圈回来变成了助长自己的信号），反应太慢又撑不住负载跳变。<strong>补偿器设计，本质是在"不自激"和"够快"之间做一笔精确到分贝和度数的交易。</strong></p>
+
+<figure>
+<svg viewBox="0 0 660 250" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>开关电源闭环控制框图与环路增益的四个组成环节</title>
+<desc>基准电压与反馈信号比较后依次经过补偿器、PWM 调制器、功率级产生输出，输出经分压网络回到比较器。补偿器、调制器增益、功率级传函、分压系数四项相乘即环路增益。</desc>
+
+<line x1="20" y1="70" x2="63" y2="70" stroke="var(--border-strong)" stroke-width="1.5"/>
+<polygon points="66,70 58,66.5 58,73.5" fill="var(--border-strong)"/>
+<text x="30" y="60" font-size="11.5" fill="var(--muted)">V<tspan font-size="8.5" dy="3">ref</tspan></text>
+
+<circle cx="82" cy="70" r="14" fill="none" stroke="var(--border-strong)" stroke-width="1.5"/>
+<text x="76" y="63" font-size="13" fill="var(--text)">+</text>
+<text x="90" y="88" font-size="14" fill="var(--text)">−</text>
+<text x="82" y="115" font-size="11" fill="var(--faint)" text-anchor="middle">误差</text>
+
+<line x1="96" y1="70" x2="120" y2="70" stroke="var(--border-strong)" stroke-width="1.5"/>
+<rect x="120" y="45" width="92" height="50" rx="8" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.6"/>
+<text x="166" y="66" font-size="13.5" font-weight="500" text-anchor="middle" fill="var(--t2-title)">补偿器</text>
+<text x="166" y="84" font-size="11.5" text-anchor="middle" fill="var(--t2-sub)"><tspan font-style="italic">G</tspan><tspan font-size="9" dy="2.5">c</tspan><tspan dy="-2.5">(<tspan font-style="italic">s</tspan>) · Type II/III</tspan></text>
+
+<line x1="212" y1="70" x2="252" y2="70" stroke="var(--border-strong)" stroke-width="1.5"/>
+<rect x="252" y="45" width="98" height="50" rx="8" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.6"/>
+<text x="301" y="66" font-size="13.5" font-weight="500" text-anchor="middle" fill="var(--t1-title)">PWM 调制</text>
+<text x="301" y="84" font-size="11.5" text-anchor="middle" fill="var(--t1-sub)"><tspan font-style="italic">F</tspan><tspan font-size="9" dy="2.5">m</tspan><tspan dy="-2.5"> = 1/V</tspan><tspan font-size="9" dy="2.5">ramp</tspan></text>
+
+<line x1="350" y1="70" x2="390" y2="70" stroke="var(--border-strong)" stroke-width="1.5"/>
+<rect x="390" y="45" width="112" height="50" rx="8" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.6"/>
+<text x="446" y="66" font-size="13.5" font-weight="500" text-anchor="middle" fill="var(--t2-title)">功率级</text>
+<text x="446" y="84" font-size="11.5" text-anchor="middle" fill="var(--t2-sub)"><tspan font-style="italic">G</tspan><tspan font-size="9" dy="2.5">vd</tspan><tspan dy="-2.5">(<tspan font-style="italic">s</tspan>) 极零点在此</tspan></text>
+
+<line x1="502" y1="70" x2="620" y2="70" stroke="var(--border-strong)" stroke-width="1.5"/>
+<polygon points="624,70 616,66.5 616,73.5" fill="var(--border-strong)"/>
+<text x="626" y="74" font-size="11.5" fill="var(--muted)">V<tspan font-size="8.5" dy="3">out</tspan></text>
+
+<line x1="612" y1="70" x2="612" y2="172" stroke="var(--border-strong)" stroke-width="1.5"/>
+<line x1="612" y1="172" x2="490" y2="172" stroke="var(--border-strong)" stroke-width="1.5"/>
+
+<circle cx="545" cy="172" r="4.5" fill="var(--card)" stroke="var(--warn)" stroke-width="1.6"/>
+<text x="545" y="205" font-size="10.5" fill="var(--warn)" text-anchor="middle">环路注入点</text>
+<text x="545" y="219" font-size="10" fill="var(--faint)" text-anchor="middle">(分压电阻上端)</text>
+
+<rect x="388" y="147" width="102" height="50" rx="8" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.6"/>
+<text x="439" y="168" font-size="13" font-weight="500" text-anchor="middle" fill="var(--t1-title)">反馈分压</text>
+<text x="439" y="186" font-size="11.5" text-anchor="middle" fill="var(--t1-sub)"><tspan font-style="italic">H</tspan> = <tspan font-style="italic">V</tspan><tspan font-size="9" dy="2.5">ref</tspan><tspan dy="-2.5">/V</tspan><tspan font-size="9" dy="2.5">out</tspan></text>
+
+<line x1="388" y1="172" x2="82" y2="172" stroke="var(--border-strong)" stroke-width="1.5"/>
+<line x1="82" y1="172" x2="82" y2="87" stroke="var(--border-strong)" stroke-width="1.5"/>
+<polygon points="82,87 78.5,95 85.5,95" fill="var(--border-strong)"/>
+
+<text x="70" y="30" font-size="11.5" fill="var(--faint)">T(s) = G<tspan font-size="8.5" dy="2.5">c</tspan><tspan dy="-2.5">(s) · F</tspan><tspan font-size="8.5" dy="2.5">m</tspan><tspan dy="-2.5"> · G</tspan><tspan font-size="8.5" dy="2.5">vd</tspan><tspan dy="-2.5">(s) · H</tspan></text>
+</svg>
+<figcaption>图 0-1　闭环控制框图。环路增益 T(s) 是四个环节的乘积——<b>补偿器、调制器增益 F<sub>m</sub>、功率级传函、反馈分压 H</b>，少乘任何一项，算出的裕度就是错的。黄色圆点是第 8 章实测时环路分析仪的注入位置：分压电阻上端，即高阻抗侧。</figcaption>
+</figure>
+
+<h3 id="ch00-2">本文的主线与章节地图</h3>
+<p>补偿设计的信息流是单向的：对象的极零点决定一切。所以章节顺序就是设计顺序——</p>
+<div class="chain">
+  <div class="step">
+    <div class="n">1</div>
+    <div>
+      <div class="b">第 1~2 章：对象说了算</div>
+      <div class="d">环路增益 = 补偿器 × 对象。对象是电压模式（LC 双重极点，相位深挖到 −180°）还是电流模式（单极点，相位只到 −90°），直接决定你要补多少相位、选 Type II 还是 Type III。Boost / 反激还有 RHPZ 卡着带宽上限。<strong>对象没搞清楚就动手调补偿器，是新手翻车的第一大来源。</strong></div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">2</div>
+    <div>
+      <div class="b">第 3 章：先把"验收标准"定下来</div>
+      <div class="d">裕度不是拍脑袋：<b>PM 45°~60°、GM ≥ 10 dB 是开关电源设计中最常见的起始目标</b>，它们各自对应明确的物理含义（抗参数漂移、防谐振峰破 0 dB）。<b>最终指标要结合控制器能力、负载范围与瞬态要求确定</b>——先定标准再设计，而不是设计完再找理由。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">3</div>
+    <div>
+      <div class="b">第 4~5 章：选武器、套公式</div>
+      <div class="d">Type I / II / III 是三种"相位提升预算"不同的补偿器。相位缺口小于 ~60° 用 Type II，更大就用 Type III。k 因子法把"需要多少提升"直接换算成零点极点该放哪、两个零点（极点）该离多远。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">4</div>
+    <div>
+      <div class="b">第 6~8 章：算例、隔离、实测</div>
+      <div class="d">第 6 章完整算例从规格走到元件值并校验三种工况；第 7 章讲隔离电源绕不开的 TL431 + 光耦——它的补偿器被光耦劈成两半，是最容易做错的结构；第 8 章讲怎么用注入法实测、怎么定位预测与实测的偏差。</div>
+    </div>
+  </div>
+</div>
+
+<h3 id="ch00-3">三种读法</h3>
+<div class="reading">
+  <div class="rc">
+    <div class="h">第一次读</div>
+    <div class="d">按顺序读 1~5 章，建立"对象 → 裕度 → 补偿器"的条件反射。第 6 章算例务必拿笔跟着算一遍。</div>
+  </div>
+  <div class="rc">
+    <div class="h">做设计时查</div>
+    <div class="d">第 4.4 节选型表 + 第 5 章 k 因子 + 第 10 章公式速查卡，三样东西够你完成 90% 的 Buck / 反激补偿设计。</div>
+  </div>
+  <div class="rc">
+    <div class="h">调试时查</div>
+    <div class="d">第 8 章偏差定位和第 9 章误区清单。环路振荡、实测与仿真不符、轻载啸叫，答案多半在这两章。</div>
+  </div>
+</div>
+
+<h2 id="ch01"><span class="num">01</span>环路增益：用开环判闭环</h2>
+
+<h3 id="ch01-1">1.1 闭环系统为什么要看开环</h3>
+<p>闭环系统的稳定性分析有一个经典困难：闭环传函的极点藏在分母里，一个三阶以上系统的特征方程手算就很痛苦，而且你看不到"该往哪改"——闭环极点是一大团耦合的结果，动任何一个元件都会同时挪动所有极点。<strong>开环增益 T(s) 的价值在于把问题拆开了</strong>：T(s) 是四个环节的简单乘积，每一项都独立可测、可算、可改；而闭环的稳定性完全由 T(s) 决定，这就是奈奎斯特判据的核心：</p>
+<div class="eq">
+|<i>T</i>(<i>j</i>ω)| = 1 且 ∠<i>T</i>(<i>j</i>ω) = −180° 同时发生 → 闭环不稳定
+</div>
+<p>工程上的稳定性就是"离这个危险点有多远"——幅值上留的距离叫<strong>增益裕度</strong>，相位上留的距离叫<strong>相位裕度</strong>。第 3 章细讲。这里只要建立一个直觉：<strong>在 |T| = 1（0 dB）的那个频率上，误差信号绕环一圈回来，幅度不变；如果此时相位刚好反相，误差就会自我维持——振荡就是这么来的。</strong></p>
+
+<h3 id="ch01-2">1.2 环路增益的四要素与断点</h3>
+<p>把 T(s) 拆开写，每一项都有明确的物理来源和"陷阱属性"：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:22%">环节</th><th style="width:30%">表达式 / 典型值</th><th>新手最容易犯的错</th></tr></thead>
+<tbody>
+<tr><td>补偿器 <i>G</i><sub>c</sub>(<i>s</i>)</td><td>Type I / II / III（第 4 章）</td><td>只有这一项是"你来设计"的，其余三项是"给定条件"</td></tr>
+<tr><td>调制器 <i>F</i><sub>m</sub></td><td>电压模式 = 1/<i>V</i><sub>ramp</sub>；电流模式折算进 <i>R</i><sub>i</sub></td><td>漏乘。锯齿峰峰 1 V 时 <i>F</i><sub>m</sub> = 1，很多人因此侥幸没出错，换 2 V 锯齿就翻车</td></tr>
+<tr><td>功率级 <i>G</i><sub>vd</sub>(<i>s</i>)</td><td>含 LC 极点、ESR 零点、可能含 RHPZ</td><td>用了简化模型但没检查适用边界（CCM / DCM）</td></tr>
+<tr><td>分压 <i>H</i></td><td><i>V</i><sub>ref</sub>/<i>V</i><sub>out</sub>（如 0.8 V / 3.3 V = 0.242）</td><td>漏乘。少乘 0.242 会高估裕度对应的增益 12 dB</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note warn">
+  <p><b>断点在哪一侧？</b>理论断点可以开在环路任何一处，但实测注入必须开在<b>高阻抗节点对低阻抗节点的过渡处</b>——标准位置是分压电阻上端（输出节点是低阻抗，分压网络是高阻抗）。开错位置，注入信号会被源阻抗分掉，测出来的曲线整个是错的。</p>
+</div>
+
+<h3 id="ch01-3">1.3 Bode 图：设计语言</h3>
+<p>Bode 图把 T(jω) 画成两张图：幅频（dB 对 log 频率）和相频（度对 log 频率）。它对补偿设计如此重要，是因为有三条"看图秒判"的规则：</p>
+<ul>
+<li><strong>斜率对应相位（渐近直觉，不是定律）</strong>：对极零点彼此充分分离的最小相位系统，−20 dB/dec 的区段相位趋于 −90°，−40 dB/dec 趋于 −180°；据此，穿越段若是 −20 dB/dec，PM 渐近上限 90°，若是 −40 dB/dec，上限 0°——<strong>看到 −40 dB/dec 穿越，基本可以判定 PM 不够，直接回去改补偿器</strong>。但这条规则只对"分离良好的一阶极零点"成立：<strong>RHPZ（幅频 +20 dB/dec、相位却 −90°）、传输延时、相邻零极点、谐振与高频寄生都会让它失效</strong>（2.3 节就是现成的反例）。所以可以把"穿越附近整体幅频大致呈 −20 dB/dec"当作好的工程目标，<strong>但 PM 最终必须从完整复频响应算出，不能只凭局部斜率断言。</strong></li>
+<li><strong>每个极点拐一次弯</strong>：幅频在极点频率之后多弯 −20 dB/dec，相位在极点前后一个十倍频内滑落 −90°。零点相反。</li>
+<li><strong>裕度直接可读</strong>：幅频穿过 0 dB 处与相频曲线的差值就是 PM；相位穿 −180° 处与 0 dB 线的距离就是 GM（下一章的图）。</li>
+</ul>
+
+<h2 id="ch02"><span class="num">02</span>被控对象：功率级说了算</h2>
+
+<h3 id="ch02-1">2.1 电压模式 Buck：双重极点 + ESR 零点</h3>
+<p>电压模式下，占空比到输出的传函（含输出电容 ESR）：</p>
+<div class="eq">
+<i>G</i><sub>vd</sub>(<i>s</i>) = <i>V</i><sub>in</sub> · (1 + <i>s r</i><sub>C</sub><i>C</i>) / [1 + <i>s</i>(<i>L</i>/<i>R</i> + <i>r</i><sub>C</sub><i>C</i>) + <i>s</i>²<i>LC</i>(1 + <i>r</i><sub>C</sub>/<i>R</i>)]
+<span class="lbl">精确式（<i>r</i><sub>C</sub> 为电容 ESR、<i>R</i> 为负载）；当 <i>r</i><sub>C</sub> ≪ <i>R</i> 时可丢掉分母的 (1+<i>r</i><sub>C</sub>/<i>R</i>) 得到常见简化式 <i>V</i><sub>in</sub>(1+<i>s r</i><sub>C</sub><i>C</i>)/(1+<i>s</i>(<i>L</i>/<i>R</i>+<i>r</i><sub>C</sub><i>C</i>)+<i>s</i>²<i>LC</i>)</span>
+</div>
+<p><strong>本文算例用的是简化式</strong>：<i>r</i><sub>C</sub>/<i>R</i> = 15 mΩ / 0.33 Ω = 4.55%，双重极点频率因此偏高 2.2%（2.39 kHz vs 精确 2.34 kHz），10 kHz 处幅值差 0.41 dB——<strong>数值上无害，但你要知道那一项去哪了</strong>；换成低阻负载（大电流输出）或高 ESR 电容时，它就不再可忽略。</p>
+<p>三个特征频率，请背下来：</p>
+<div class="formula-grid">
+  <div class="fc"><div class="h">LC 双重极点</div><div class="e">ω<sub>0</sub> = 1/√(<i>LC</i>)，<i>Q</i> = <i>R</i>√(<i>C</i>/<i>L</i>) 附近相位塌向 −180°</div></div>
+  <div class="fc"><div class="h">ESR 零点</div><div class="e">ω<sub>z,esr</sub> = 1/(<i>r</i><sub>C</sub><i>C</i>)，把斜率从 −40 拉回 −20 dB/dec</div></div>
+  <div class="fc"><div class="h">品质因数</div><div class="e"><i>Q</i> = 1/(ω<sub>0</sub>(<i>L</i>/<i>R</i> + <i>r</i><sub>C</sub><i>C</i>))，轻载时升高 → 谐振峰变尖</div></div>
+</div>
+<p><strong>双重极点是电压模式的麻烦所在</strong>：它一次性贡献 −180° 相位，补偿器必须在穿越频率处把相位拉回来，这就是电压模式 Buck 通常需要 Type III 的原因（第 4.4 节）。ESR 零点是免费的相位礼物，但它的位置随电解液温度、电容老化漂移——<strong>可以把设计"落"在它附近，不能把裕度"押"在它身上</strong>。</p>
+
+<h3 id="ch02-2">2.2 电流模式 Buck：外电压环的低频单极点近似</h3>
+<p>峰值电流模式把电感电流纳入内环：占空比不再直接控制输出，而是控制电流峰值，电感这个"惯性"被内环吃掉了。<strong>在远低于 <i>f</i><sub>sw</sub>/2 的频段</strong>，外环（电压环）看到的对象从二阶降为一阶：</p>
+<div class="eq">
+<i>G</i><sub>vc</sub>(<i>s</i>) ≈ (<i>R</i><sub>load</sub>/<i>R</i><sub>i</sub>) · (1 + <i>s r</i><sub>C</sub><i>C</i>) / (1 + <i>s R</i><sub>load</sub><i>C</i>)
+</div>
+<p>一个低频极点（1/(2π<i>R</i><sub>load</sub><i>C</i>)）加一个 ESR 零点，相位最深到 −90°。补偿器只需提供积分器加少量提升——<strong>Type II 就够，这就是电流模式"好补"的原因</strong>。</p>
+<div class="note warn">
+  <p><b>这个单极点模型的适用边界必须说清楚。</b>它是<b>外电压环的低频近似</b>，成立前提有三条：① 频率远低于 <i>f</i><sub>sw</sub>/2；② 电流内环足够快，可以当理想受控源；③ 忽略峰值采样效应与斜率补偿对低频增益的修正。完整的峰值电流模式小信号模型里，<b><i>f</i><sub>sw</sub>/2 附近还存在一对由采样效应产生的复极点（subharmonic doublet）</b>，低频增益也随斜率补偿量变化。所以当 <i>f</i><sub>c</sub> 取得较高（比如接近 <i>f</i><sub>sw</sub>/10）、或占空比接近 0.5 时，<b>必须换用 Ridley 模型或控制器厂商给出的精确 modulator model</b>（见参考资料）。另外占空比 &gt; 0.5 时有次谐波振荡，须加斜率补偿。</p>
+</div>
+
+<figure>
+<img class="figimg" src="figs/plant_bode.png" alt="MATLAB 计算的电压模式与电流模式 Buck 功率级 Bode 图对比" loading="lazy" decoding="async">
+<figcaption>图 2-1　<b>MATLAB 按 2.1 / 2.2 的传函逐点数值计算，不是手绘示意。</b>同一台 Buck（12 V → 3.3 V / 10 A，300 kHz，L = 4.7 μH，C = 940 μF，ESR = 15 mΩ，R = 0.33 Ω，H = 0.8/3.3）：电压模式（实线）直流增益 20log(H·V<sub>in</sub>) = 9.3 dB，在 <i>f</i><sub>0</sub> = 1/(2π√(LC)) = 2.39 kHz 处被 LC 双重极点压成 −40 dB/dec，Q = 2.35 让谐振峰鼓到 +17.6 dB；电流模式（虚线）直流增益 20log(H·R/R<sub>i</sub>) = 12.0 dB，只剩一个 513 Hz 单极点，−20 dB/dec 一路走平。相频上，电流模式最深只到 <b>−65.9°</b>（@2.4 kHz），电压模式最深到 <b>−141.3°</b>（@5.1 kHz）——注意它并没有真的挖到 −180°，因为 11.3 kHz 的 ESR 零点提前把相位拉了回来。<b>这 −141° 与 −66° 的差距，就是"电压模式必须上 Type III、电流模式 Type II 就够"这个选型结论的全部答案。</b></figcaption>
+<span class="src"><span class="tag own">自绘</span>MATLAB 数值计算生成（传函逐点求值）· 脚本 <code>figs/gen_figs.m</code> · 参数与第 6 章算例一致</span>
+</figure>
+
+<h3 id="ch02-3">2.3 RHPZ：Boost / 反激的带宽天花板</h3>
+<p>Boost、Buck-Boost、反激（CCM）的传函里有一个<strong>右半平面零点（RHPZ）</strong>。它的幅频特性和普通零点一样（+20 dB/dec，增益上升），相位却和极点一样（−90° 滞后）。<strong>增益说"相信我"，相位说"但请等我"——这种"先涨后塌"无法用任何常规补偿器抵消</strong>：你放一个极点去压它的增益，同时也压掉了自己的相位储备。</p>
+<p>唯一正确的处理方式是躲：</p>
+<div class="eq">
+<i>f</i><sub>c</sub> ≤ <i>f</i><sub>rhpz</sub> / 3 ~ /5
+<span class="lbl">工程经验值；理想 CCM Boost（<i>R</i> 取 <i>R</i><sub>load</sub>）<i>f</i><sub>rhpz</sub> = <i>R</i>(1−<i>D</i>)²/(2π<i>L</i>)</span>
+</div>
+<p>注意一个反直觉的推论：<strong>减小电感会推高 <i>f</i><sub>rhpz</sub>，反而是提高 Boost 带宽的正路</strong>——虽然纹波会变大。想在 RHPZ 之上硬拉带宽的人，最后都会在示波器上看到周期 1/<i>f</i><sub>c</sub> 左右的振荡。</p>
+<div class="note warn">
+  <p><b>别把 RHPZ 公式当成"Boost 类通用式"。</b>不同拓扑的小信号模型不同，RHPZ 的位置也不同，直接套用会算错一倍以上：</p>
+  <ul>
+    <li><b>理想 CCM Boost</b>（<i>R</i> = <i>R</i><sub>load</sub>）：<i>ω</i><sub>rhpz</sub> = <i>R</i>(1−<i>D</i>)²/<i>L</i>，即 <i>f</i><sub>rhpz</sub> = <i>R</i>(1−<i>D</i>)²/(2π<i>L</i>)。本例 <i>R</i> = 5 Ω、<i>D</i> = 0.5、<i>L</i> = 100 μH → <b>1.99 kHz</b>，与图 2-2 一致。（TI SLVA633 式(5) 给的就是这个形式。）</li>
+    <li><b>CCM Buck-Boost / 反激</b>：电感只在 (1−<i>D</i>) 时段向输出供能，小信号模型里多一个 <i>D</i> 因子——<i>ω</i><sub>rhpz</sub> = <i>R</i>(1−<i>D</i>)²/(<i>D</i><i>L</i>)。同样参数下是 <b>3.98 kHz</b>，正好是 Boost 的两倍。<b>两个式子不能混用</b>；反激还涉及原边 / 副边折算，务必按对应拓扑的模型重新推导。</li>
+  </ul>
+  <p>上面两个数值是用状态空间平均模型做数值线性化、再求 <i>G</i><sub>vd</sub> 分子零点得到的，与 TI SLVA633 的解析式逐位吻合。</p>
+</div>
+<figure>
+<img class="figimg" src="figs/rhpz.png" alt="MATLAB 计算的 Boost 右半平面零点幅频与相频对比" loading="lazy" decoding="async">
+<figcaption>图 2-2　<b>RHPZ 长什么样，用数字看最清楚。</b>Boost 12 V → 24 V（<i>D</i> = 0.5、C = 470 μF、ESR = 50 mΩ、R = 5 Ω），只换电感：L = 100 μH 时 <i>f</i><sub>rhpz</sub> = <i>R</i>(1−<i>D</i>)²/(2π<i>L</i>) = <b>2.0 kHz</b>，L = 33 μH 时升到 <b>6.0 kHz</b>（绿色点线）。看三件事：① 幅频在 RHPZ 之后不是下折而是<b>抬头</b>——这是 +20 dB/dec 的"假增益"，增益越大越骗人；② 相频在 RHPZ 附近被额外拽下 90°，蓝色曲线一路压到 −210° 才被 ESR 零点拉回，渐近值是 −180°；③ 减电感把两条曲线整体右移。<b>所以 Boost / 反激提带宽的正路是减电感（把 RHPZ 推高），代价是纹波和磁芯损耗——不是加补偿器。</b></figcaption>
+<span class="src"><span class="tag own">自绘</span>MATLAB 数值计算生成 · 脚本 <code>figs/gen_figs.m</code>（Boost CCM 平均模型，含 ESR 零点）</span>
+</figure>
+
+<h3 id="ch02-4">2.4 反馈分压 H 与调制器 F<sub>m</sub>：最容易被漏的两项</h3>
+<p>分压网络把 3.3 V 缩到 0.8 V 基准口径，系数 0.242（−12.3 dB）——这一项不进环路增益，你算出的穿越频率会差一倍以上。调制器增益 F<sub>m</sub> 同理：电压模式是 1/<i>V</i><sub>ramp</sub>，锯齿 1 V 时恰好等于 1，于是"漏乘"被掩盖；换到锯齿 2 V 的芯片上误差就是 −6 dB。<strong>建议把 T(s) 四要素列成清单，每一项都写出数值再相乘。</strong></p>
+
+<h2 id="ch03"><span class="num">03</span>稳定裕度：PM、GM 与取值</h2>
+
+<h3 id="ch03-1">3.1 相位裕度：定义与读法</h3>
+<p>在幅频曲线穿过 0 dB 的频率（穿越频率 <i>f</i><sub>c</sub>）上读相位：</p>
+<div class="eq">
+PM = 180° + ∠<i>T</i>(<i>j</i>ω<sub>c</sub>)
+</div>
+<p>物理图像：<strong>假设环内所有环节的相位再恶化 PM 那么多度，系统才到达临界振荡。</strong>所以 PM 度量的是"相位还能坏多少"——器件老化、温度漂移、负载变化带来的相位恶化，都在消耗这份储备。PM 也直接决定阶跃响应的振铃程度（3.4 节）。</p>
+
+<h3 id="ch03-2">3.2 增益裕度：防"变聋"的保险</h3>
+<p>在相位曲线穿过 −180° 的频率（<i>ω</i><sub>180</sub>）上读增益：</p>
+<div class="eq">
+GM = −20 log|<i>T</i>(<i>j</i>ω<sub>180</sub>)|
+</div>
+<p>物理图像：<strong>环内增益再放大 GM 倍，系统才临界振荡。</strong>它防的是"增益变大的工况"：输入电压升高让 <i>G</i><sub>vd</sub> 直流增益变大、轻载让 <i>Q</i> 谐振峰鼓包、采样延时让高频段隆起。GM 不足的系统在某个参数偏一下之后会突然振荡，而且往往不是在 <i>f</i><sub>c</sub> 振，是在 <i>ω</i><sub>180</sub> 附近振——现象诡异，根源在此。</p>
+
+<figure>
+<img class="figimg" src="figs/margins_generic.png" alt="MATLAB 计算的示例环路 Bode 图，标注相位裕度与增益裕度读法" loading="lazy" decoding="async">
+<figcaption>图 3-1　<b>裕度的标准读法：两条曲线各读一个数。</b>示例环路 <i>T</i>(<i>s</i>) = 2×10<sup>5</sup>(1 + <i>s</i>/ω<sub>z</sub>)/[<i>s</i>(1 + <i>s</i>/ω<sub>p1</sub>)(1 + <i>s</i>/ω<sub>p2</sub>)(1 + <i>s</i>/ω<sub>p3</sub>)]，零点 1.5 kHz、三个极点 500 Hz / 30 kHz / 50 kHz。MATLAB 算出：<b><i>f</i><sub>c</sub> = 9.97 kHz，该处相位 −125.4° → PM = 54.6°</b>；相位在 <b>37.7 kHz</b> 穿过 −180°，该处增益 −17.1 dB → <b>GM = 17.1 dB</b>。<b>读法是交叉的：PM 要在幅频图上找 0 dB 穿越点、再去相频图读相位；GM 要在相频图上找 −180° 穿越点、再回幅频图读增益。初学者最常犯的错是在同一张子图上把两个数读串。</b></figcaption>
+<span class="src"><span class="tag own">自绘</span>MATLAB 数值计算生成 · 脚本 <code>figs/gen_figs.m</code>（教学用示例环路，非第 6 章算例）</span>
+</figure>
+
+<h3 id="ch03-3">3.3 裕度取多少：工程标准</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:24%">指标</th><th style="width:26%">工程默认值</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td>相位裕度 PM</td><td>45°~60°（目标 60°）</td><td>45° 是抗扰底线；60° 对应阶跃响应几乎无振铃，且给参数漂移留 15° 余量</td></tr>
+<tr><td>增益裕度 GM</td><td>≥ 10 dB</td><td>保证环内增益翻 3 倍仍稳定；电流模式轻松达标，电压模式谐振峰工况要专门校验</td></tr>
+<tr><td>穿越频率 <i>f</i><sub>c</sub></td><td><i>f</i><sub>sw</sub>/10 ~ /20</td><td>高于 <i>f</i><sub>sw</sub>/10 开关纹波进入误差通道，且延时相位损失急剧增大</td></tr>
+<tr><td>直流增益 <i>T</i>(0)</td><td>越高越好（含积分器）</td><td>稳态精度由低频增益决定，积分器给到无穷大</td></tr>
+<tr><td>低频段斜率</td><td>−20 dB/dec（单积分）</td><td>双积分（−40 dB/dec）相位 −180°，除非万不得已不用</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note">
+  <p><b>PM 不是越大越好。</b>PM 逼近 90°~100° 意味着补偿器把零点放得过低、积分器增益被压小，负载阶跃恢复时间显著变长。设计目标是"够用的裕度 + 尽量高的中频段增益"，60° 通常就是甜点。</p>
+</div>
+
+<h3 id="ch03-4">3.4 裕度与阶跃响应的对应关系</h3>
+<p>对一个由<strong>单一二阶环节主导</strong>、且没有额外零点或传输延时的环路，工程上常用线性近似 <i>ζ</i> ≈ PM/100（PM 以度计）估阻尼比，再由二阶标准式推出负载阶跃后的表现。它的适用范围大约在 <strong>PM 30°~70°</strong>：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:22%">PM</th><th style="width:20%">ζ ≈</th><th>阶跃响应表现</th></tr></thead>
+<tbody>
+<tr><td>30°</td><td>0.3</td><td>明显振铃，超调 ~37%，输出在目标附近震荡数个周期——能用但难听（ audible noise 风险）</td></tr>
+<tr><td>45°</td><td>0.45</td><td>轻微振铃，超调 ~20%，一个来回内稳定</td></tr>
+<tr><td>60°</td><td>0.6</td><td>超调 ~10%，基本无振铃——<b>甜点</b></td></tr>
+<tr><td>76°</td><td>0.76</td><td>超调 ~2.5%，振铃很弱，但上升沿开始变慢</td></tr>
+<tr><td>&gt; 90°</td><td>近似失效</td><td>迟钝。此时 <i>ζ</i> ≈ PM/100 已无意义（精确关系里 PM 的渐近上限就是 90°）；中频增益被牺牲，负载跳变瞬间跌坑深、恢复慢</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note">
+  <p><b>为什么"76° ↔ <i>ζ</i> = 1"这个说法到处流传？</b>因为它出自<strong>另一套关系</strong>。对 <i>T</i>(<i>s</i>) = <i>ω</i><sub>n</sub>²/[<i>s</i>(<i>s</i>+2<i>ζω</i><sub>n</sub>)] （积分器 + 一对复极点）这类环路，PM 与 <i>ζ</i> 有精确关系</p>
+  <div class="eq"><i>ζ</i> = 1 时该式恰好给出 PM = 76.3°；<i>ζ</i> = 0.76 对应的是 PM = 68.1°，不是 76°。<span class="lbl">所以"76° → <i>ζ</i> = 1 → 无超调"和"76° → <i>ζ</i> ≈ 0.76 → 超调 2.5%"分别出自精确式与经验式，两者不能混着用</span></div>
+  <p>两套关系在 <b>PM ≤ 60°</b> 区间吻合得很好（超调差 2~3 个百分点：30° 时 37.2% vs 41.6%，60° 时 9.5% vs 8.8%），<b>高 PM 处才明显分岔</b>——经验式会把 <i>ζ</i> 越估越高。本文统一采用经验式 <i>ζ</i> ≈ PM/100（图 3-2 即按此绘制），<strong>请勿把它外推到 PM &gt; 70°</strong>；需要精确对应时用上面那个二阶精确关系。</p>
+</div>
+<figure>
+<img class="figimg" src="figs/step_pm.png" alt="MATLAB 计算的二阶系统不同相位裕度下的阶跃响应" loading="lazy" decoding="async">
+<figcaption>图 3-2　<b>把上表画出来。</b>二阶近似 ζ ≈ PM/100、ω<sub>n</sub> = 1 kHz 的归一化阶跃响应：PM = 30°（ζ = 0.3）超调 <b>37.2%</b>，输出要来回振三个周期；45° 超调 20.5%；<b>60°（ζ = 0.6）超调 9.5%</b>，一个来回内收住；76° 超调 2.5%，但上升沿明显变慢。<b>注意纵轴是"归一化输出"——这是标准二阶系统对自身单位阶跃的百分比超调，<u>不能</u>直接乘负载电流阶跃换算成"多少安培"或"多少伏"的过冲。真实电源的负载阶跃偏差要由闭环输出阻抗 <i>Z</i><sub>out,cl</sub>(<i>s</i>) 或时域模型计算，同时取决于输出电容、ESR、电感电流上升速度、运放饱和与 COMP 钳位。这张图只回答"PM 低会让振铃变多厉害"这一个问题。</b></figcaption>
+<span class="src"><span class="tag own">自绘</span>MATLAB 数值计算生成 · 脚本 <code>figs/gen_figs.m</code>（二阶闭环阶跃响应，ζ = PM/100 近似）</span>
+</figure>
+
+<h2 id="ch04"><span class="num">04</span>Type I / II / III 补偿器</h2>
+
+<h3 id="ch04-1">4.1 从误差放大器到补偿器</h3>
+<p>补偿器不是额外加的一块电路，它就是误差放大器本身——运放的反馈网络决定它"看到误差之后怎么反应"。对反相组态运放，传函就是反馈阻抗比输入阻抗：</p>
+<div class="eq">
+<i>G</i><sub>c</sub>(<i>s</i>) = −<i>Z</i><sub>f</sub>(<i>s</i>) / <i>Z</i><sub>in</sub>(<i>s</i>)
+<span class="lbl">按节点电压定义的电路传函；反相组态自带 −180°</span>
+</div>
+<p>所有补偿器设计问题，因此都归结为一道<strong>阻抗网络题</strong>：在 <i>Z</i><sub>f</sub> 和 <i>Z</i><sub>in</sub> 里放什么 R、什么 C。Type I / II / III 就是三种经过千锤百炼的标准答案。</p>
+<div class="note">
+  <p><b>先把符号约定统一，再谈相位。</b>上面这个 −180° 是"按节点电压定义电路传函"带来的，而环路裕度分析用的是<strong>负反馈的 return ratio</strong>：通常写 1 + <i>T</i>(<i>s</i>) = 0，求和节点那个"−"已经体现在负反馈结构里，工程 Bode 分析中的 <i>T</i>(<i>s</i>) 按<strong>正的</strong> return ratio 定义。因此本文的做法是：<strong>把求和节点的反相符号吸收进反馈定义，后文 <i>T</i>(<i>s</i>) 的 Bode 相位不再额外叠加这 180°</strong>。换句话说，符号只在"电路传函 → 环路增益"这一步处理一次，此后 PM = 180° + ∠<i>T</i>(<i>jω</i><sub>c</sub>) 全程按同一约定计算——<strong>不能一会儿算进去、一会儿又"取绝对值"。</strong></p>
+</div>
+
+<figure>
+<svg viewBox="0 0 690 182" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Type I、Type II、Type III 补偿器的运放实现电路</title>
+<desc>三个几何对齐的反相误差放大器。Type I：输入电阻、反馈电容，纯积分。Type II：输入电阻，反馈为电阻串电容再并联小电容，一个零点一个高频极点。Type III：输入支路为电阻并联电阻串电容，反馈同 Type II，提供两个零点两个高频极点。</desc>
+<line x1="14" y1="80" x2="96" y2="80" stroke="var(--border-strong)" stroke-width="1.4"/>
+<rect x="24" y="68" width="48" height="24" rx="4" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.7"/>
+<text x="48.0" y="84" font-size="10" text-anchor="middle" fill="var(--t1-title)">R1</text>
+<text x="48.0" y="60" font-size="10" fill="var(--faint)" text-anchor="middle">Zi</text>
+<circle cx="96" cy="80" r="2.6" fill="var(--border-strong)"/>
+<line x1="96" y1="80" x2="96" y2="36" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="96" y1="36" x2="192" y2="36" stroke="var(--border-strong)" stroke-width="1.4"/>
+<rect x="148" y="24" width="44" height="24" rx="4" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.7"/>
+<text x="170.0" y="40" font-size="9.5" text-anchor="middle" fill="var(--t2-title)">C1</text>
+<text x="170.0" y="16" font-size="10" fill="var(--faint)" text-anchor="middle">Zf</text>
+<line x1="192" y1="36" x2="192" y2="88" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="146" y1="88" x2="198" y2="88" stroke="var(--border-strong)" stroke-width="1.4"/>
+<polygon points="96,66 96,110 146,88" fill="none" stroke="var(--border-strong)" stroke-width="1.4"/>
+<text x="106" y="84" font-size="11" fill="var(--text)">−</text>
+<text x="106" y="106" font-size="11" fill="var(--text)">+</text>
+<line x1="96" y1="102" x2="80" y2="102" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="71" y1="108" x2="89" y2="108" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="75" y1="112" x2="85" y2="112" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="78" y1="116" x2="82" y2="116" stroke="var(--border-strong)" stroke-width="0.8"/>
+<text x="202" y="92" font-size="9.5" fill="var(--muted)">Vout</text>
+<text x="105" y="142" font-size="13.5" font-weight="600" text-anchor="middle" fill="var(--text)">Type I</text>
+<text x="105" y="159" font-size="10.5" text-anchor="middle" fill="var(--muted)">Zi = R1，Zf = C1</text>
+<text x="105" y="175" font-size="10.5" text-anchor="middle" fill="var(--muted)">纯积分：相位恒 −90°，无提升</text>
+<line x1="244" y1="80" x2="326" y2="80" stroke="var(--border-strong)" stroke-width="1.4"/>
+<rect x="254" y="68" width="48" height="24" rx="4" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.7"/>
+<text x="278.0" y="84" font-size="10" text-anchor="middle" fill="var(--t1-title)">R1</text>
+<text x="278.0" y="60" font-size="10" fill="var(--faint)" text-anchor="middle">Zi</text>
+<circle cx="326" cy="80" r="2.6" fill="var(--border-strong)"/>
+<line x1="326" y1="80" x2="326" y2="36" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="326" y1="36" x2="422" y2="36" stroke="var(--border-strong)" stroke-width="1.4"/>
+<rect x="354" y="24" width="68" height="24" rx="4" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.7"/>
+<text x="388.0" y="40" font-size="9.5" text-anchor="middle" fill="var(--t2-title)">R2–C1 串 ∥ C2</text>
+<text x="388.0" y="16" font-size="10" fill="var(--faint)" text-anchor="middle">Zf</text>
+<line x1="422" y1="36" x2="422" y2="88" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="376" y1="88" x2="428" y2="88" stroke="var(--border-strong)" stroke-width="1.4"/>
+<polygon points="326,66 326,110 376,88" fill="none" stroke="var(--border-strong)" stroke-width="1.4"/>
+<text x="336" y="84" font-size="11" fill="var(--text)">−</text>
+<text x="336" y="106" font-size="11" fill="var(--text)">+</text>
+<line x1="326" y1="102" x2="310" y2="102" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="301" y1="108" x2="319" y2="108" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="305" y1="112" x2="315" y2="112" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="308" y1="116" x2="312" y2="116" stroke="var(--border-strong)" stroke-width="0.8"/>
+<text x="432" y="92" font-size="9.5" fill="var(--muted)">Vout</text>
+<text x="335" y="142" font-size="13.5" font-weight="600" text-anchor="middle" fill="var(--text)">Type II</text>
+<text x="335" y="159" font-size="10.5" text-anchor="middle" fill="var(--muted)">Zi = R1，Zf = R2–C1 串 ∥ C2</text>
+<text x="335" y="175" font-size="10.5" text-anchor="middle" fill="var(--muted)">1 零点 1 高频极点：提升 0°~90°</text>
+<line x1="474" y1="80" x2="556" y2="80" stroke="var(--border-strong)" stroke-width="1.4"/>
+<rect x="484" y="68" width="66" height="24" rx="4" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.7"/>
+<text x="517.0" y="84" font-size="10" text-anchor="middle" fill="var(--t1-title)">R1∥R3–C3</text>
+<text x="517.0" y="60" font-size="10" fill="var(--faint)" text-anchor="middle">Zi</text>
+<circle cx="556" cy="80" r="2.6" fill="var(--border-strong)"/>
+<line x1="556" y1="80" x2="556" y2="36" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="556" y1="36" x2="652" y2="36" stroke="var(--border-strong)" stroke-width="1.4"/>
+<rect x="584" y="24" width="68" height="24" rx="4" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.7"/>
+<text x="618.0" y="40" font-size="9.5" text-anchor="middle" fill="var(--t2-title)">R2–C1 串 ∥ C2</text>
+<text x="618.0" y="16" font-size="10" fill="var(--faint)" text-anchor="middle">Zf</text>
+<line x1="652" y1="36" x2="652" y2="88" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="606" y1="88" x2="658" y2="88" stroke="var(--border-strong)" stroke-width="1.4"/>
+<polygon points="556,66 556,110 606,88" fill="none" stroke="var(--border-strong)" stroke-width="1.4"/>
+<text x="566" y="84" font-size="11" fill="var(--text)">−</text>
+<text x="566" y="106" font-size="11" fill="var(--text)">+</text>
+<line x1="556" y1="102" x2="540" y2="102" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="531" y1="108" x2="549" y2="108" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="535" y1="112" x2="545" y2="112" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="538" y1="116" x2="542" y2="116" stroke="var(--border-strong)" stroke-width="0.8"/>
+<text x="662" y="92" font-size="9.5" fill="var(--muted)">Vout</text>
+<text x="565" y="142" font-size="13.5" font-weight="600" text-anchor="middle" fill="var(--text)">Type III</text>
+<text x="565" y="159" font-size="10.5" text-anchor="middle" fill="var(--muted)">Zi = R1 ∥ (R3–C3)，Zf = R2–C1 串 ∥ C2</text>
+<text x="565" y="175" font-size="10.5" text-anchor="middle" fill="var(--muted)">2 零点 2 高频极点：提升 0°~180°</text>
+</svg>
+<figcaption>图 4-1　三类补偿器的标准运放实现。共同点：都含一个积分（原点极点，由反相组态 + 电容支路天然提供），保证零稳态误差。差别只在相位提升预算——Type I 提升 0°，Type II 最多 ~90°，Type III 最多 ~180°。<b>选型的唯一依据就是对象在穿越频率处"挖"了多少相位。元件级推导与推荐取值见 <a href="https://www.ti.com/lit/an/slva662/slva662.pdf">TI SLVA662</a>。</figcaption>
+<span class="src"><span class="tag own">自绘</span>程序化排布 SVG（三面板同尺度对齐）· 电路拓扑与 TI SLVA662 / Basso 一致</span>
+</figure>
+
+<h3 id="ch04-2">4.2 三类电路与传递函数</h3>
+<div class="eq">
+Type I：&nbsp;&nbsp;<i>G</i><sub>c</sub>(<i>s</i>) = − 1/(<i>s R</i><sub>1</sub><i>C</i><sub>1</sub>)
+<span class="lbl">只有积分，只用于对象相位余量极大的场合（少见）</span>
+</div>
+<div class="eq">
+Type II：&nbsp;&nbsp;<i>G</i><sub>c</sub>(<i>s</i>) = − <i>K</i> · (1 + <i>s</i>/ω<sub>z</sub>) / [<i>s</i>(1 + <i>s</i>/ω<sub>p</sub>)]
+<span class="lbl">ω<sub>z</sub> = 1/(R<sub>2</sub>C<sub>1</sub>)，ω<sub>p</sub> = (C<sub>1</sub>+C<sub>2</sub>)/(R<sub>2</sub>C<sub>1</sub>C<sub>2</sub>) ≈ 1/(R<sub>2</sub>C<sub>2</sub>)，K = 1/(R<sub>1</sub>(C<sub>1</sub>+C<sub>2</sub>))</span>
+</div>
+<div class="eq">
+Type III：&nbsp;&nbsp;<i>G</i><sub>c</sub>(<i>s</i>) = − <i>K</i> · (1 + <i>s</i>/ω<sub>z1</sub>)(1 + <i>s</i>/ω<sub>z2</sub>) / [<i>s</i>(1 + <i>s</i>/ω<sub>p1</sub>)(1 + <i>s</i>/ω<sub>p2</sub>)]
+<span class="lbl">零点来自 Zf 的 R2C1 与 Zi 的 R3C3，极点来自两个支路的高频电容</span>
+</div>
+<p>读这三个传函只需要掌握一件事：<strong>零点抬相位、极点压增益</strong>。补偿器的形状永远是"低频积分（增益无穷、相位 −90°）→ 零点把相位抬起来 → 高频极点把开关频率附近的增益压下去"。区别只是抬几次、压几次。</p>
+
+<h3 id="ch04-3">4.3 相位提升预算：各自的上限</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:16%">类型</th><th style="width:30%">穿越处绝对相位范围</th><th style="width:24%">最大提升（相对积分器）</th><th>适用对象</th></tr></thead>
+<tbody>
+<tr><td>Type I</td><td>−90° 恒定</td><td>0°</td><td>对象相位好于 −60° 的极端顺从场合</td></tr>
+<tr><td>Type II</td><td>−90° → 0°</td><td>+90°（实用 ~80°）</td><td>电流模式 Buck、DCM 对象、Boost / 反激</td></tr>
+<tr><td>Type III</td><td>−90° → +90°</td><td>+180°（实用 ~160°）</td><td>电压模式 Buck（LC 双重极点）；凡是 Type II 给不出所需绝对相位的场合</td></tr>
+</tbody>
+</table>
+</div>
+<p>注意<strong>"绝对相位"和"提升量"是两个数</strong>：Type II 在穿越频率处的绝对相位可能是 −40°（积分 −90° + 提升 +50°），别把它误当成"相位裕度 40°"。裕度永远用整个环路的相位算。</p>
+<figure>
+<img class="figimg" src="figs/type_comp.png" alt="MATLAB 计算的 Type II 与 Type III 补偿器 Bode 图对比" loading="lazy" decoding="async">
+<figcaption>图 4-2　<b>两类补偿器的相位提升能力，画在一张图上看。</b>Type II（蓝，电流模式算例）：<i>f</i><sub>z</sub> = 8.56 kHz、<i>f</i><sub>p</sub> = 14.3 kHz，<i>k</i> = <i>f</i><sub>p</sub>/<i>f</i><sub>z</sub> = 1.67，相位平台抬到 <b>−75.5°</b>，相对积分器提升 <b>14.5°</b>。Type III（红，同规格改电压模式）：双零点 3.53 kHz、双极点 28.35 kHz，√<i>k</i> = tan(45° + φ/4) = 2.84（即 <i>k</i> = 8.04），相位峰冲到 <b>+12.3°</b>，提升 <b>102.3°</b>。两者都含积分器，所以低频段都是 −90° 直线。<b>看那条 −90° 参考线：所谓"提升"就是曲线在它之上抬起了多少——Type II 的 15° 与 Type III 的 102°，正是 4.3 节选型表里那两个数字的来历。</b></figcaption>
+<span class="src"><span class="tag own">自绘</span>MATLAB 数值计算生成 · 脚本 <code>figs/gen_figs.m</code> · Type III 参数由 k 因子法反算</span>
+</figure>
+
+<h3 id="ch04-4">4.4 选型决策表</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:40%">你的对象</th><th>选什么</th></tr></thead>
+<tbody>
+<tr><td>电流模式 Buck / Boost / 反激（CCM，单极点 + ESR 零点）</td><td><b>Type II</b>（带宽要求极低时可退到 Type I）</td></tr>
+<tr><td>电压模式 Buck（CCM，LC 双重极点）</td><td><b>Type III</b>（对象在 <i>f</i><sub>c</sub> 处相位深于 −135°，Type II 的 −90°→0° 绝对相位给不够）</td></tr>
+<tr><td>电压模式轻载 / DCM（双重极点消失）</td><td><b>Type II</b></td></tr>
+<tr><td>LLC 谐振腔（归一化增益曲线平坦段）</td><td>常为 <b>Type II/III 数字实现</b>，谐振腔对象另算</td></tr>
+<tr><td>PFC 电流内环</td><td><b>Type II</b>（对象近似纯增益 + 低频极点）</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note ok">
+  <p><b>一个快速判断法</b>：算出对象在拟定 <i>f</i><sub>c</sub> 处的相位 ∠G。目标 PM 60°，需要补偿器提供的绝对相位 = 60° − 180° − ∠G。结果落在 −90°~0° 之间 → Type II；需要正值（&gt; 0°）→ Type III。</p>
+</div>
+
+<h2 id="ch05"><span class="num">05</span>k 因子法与七步设计流程</h2>
+
+<h3 id="ch05-1">5.1 k 因子：把裕度变成公式</h3>
+<p>选定了类型，剩下的问题是"零点极点放在哪"。Venable 的 k 因子法给出解析答案：<strong>把零点组和极点组按几何对称摆放在穿越频率两侧</strong>，使提升的相位恰好等于缺口、且在 <i>f</i><sub>c</sub> 处提升曲线最平（对元件误差最不敏感）：</p>
+<div class="eq">
+<i>k</i> = tan²(45° + φ<sub>boost</sub>/2)　<span class="lbl">Type II；Type III 把 φ/2 换成 φ/4</span>
+</div>
+<div class="formula-grid">
+  <div class="fc"><div class="h">Type II 放置</div><div class="e"><i>f</i><sub>z</sub> = <i>f</i><sub>c</sub>/√<i>k</i>，&nbsp;<i>f</i><sub>p</sub> = <i>f</i><sub>c</sub>·√<i>k</i></div></div>
+  <div class="fc"><div class="h">Type III 放置（双零 + 双极）</div><div class="e"><i>f</i><sub>z</sub> = <i>f</i><sub>c</sub>/√<i>k</i>（双零点重合）<br><i>f</i><sub>p</sub> = <i>f</i><sub>c</sub>·√<i>k</i>（双极点重合）</div></div>
+  <div class="fc"><div class="h">提升量（反算）</div><div class="e">Type II：φ = 2·arctan√<i>k</i> − 90°<br>Type III：φ = 4·arctan√<i>k</i> − 180°</div></div>
+</div>
+<div class="card">
+<table>
+<thead><tr><th style="width:30%">所需提升 φ</th><th style="width:30%">k（Type II）</th><th>零点 / 极点位置（以 <i>f</i><sub>c</sub> 为基准）</th></tr></thead>
+<tbody>
+<tr><td>0°（不用提升）</td><td>1</td><td><i>f</i><sub>z</sub> = <i>f</i><sub>p</sub> = <i>f</i><sub>c</sub>（互相抵消，退化为积分器）</td></tr>
+<tr><td>30°</td><td>3.0</td><td><i>f</i><sub>z</sub> = 0.58 <i>f</i><sub>c</sub>，<i>f</i><sub>p</sub> = 1.73 <i>f</i><sub>c</sub></td></tr>
+<tr><td>60°</td><td>13.9</td><td><i>f</i><sub>z</sub> = 0.27 <i>f</i><sub>c</sub>，<i>f</i><sub>p</sub> = 3.73 <i>f</i><sub>c</sub></td></tr>
+<tr><td>80°</td><td>131</td><td><i>f</i><sub>z</sub> = 0.088 <i>f</i><sub>c</sub>，<i>f</i><sub>p</sub> = 11.4 <i>f</i><sub>c</sub></td></tr>
+</tbody>
+</table>
+</div>
+<p>k 因子的含义：<strong>提升越大，零点要放得越低、极点越远，中间那段平坦增益就越"矮"</strong>——中频段增益被压小，负载阶跃的恢复速度变慢。这就是"裕度是用带宽和中频增益买来的"的数学形式。</p>
+
+<h3 id="ch05-2">5.2 七步设计流程</h3>
+<div class="chain">
+  <div class="step">
+    <div class="n">1</div>
+    <div>
+      <div class="b">拿到对象传函</div>
+      <div class="d">按第 2 章公式写出 <i>G</i>(<i>s</i>)（含 <i>F</i><sub>m</sub> 和 <i>H</i>），算出直流增益、极点、零点、<i>Q</i>。电流模式确认无次谐波问题，电压模式确认 <i>Q</i> 值。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">2</div>
+    <div>
+      <div class="b">定穿越频率 <i>f</i><sub>c</sub></div>
+      <div class="d">默认 <i>f</i><sub>sw</sub>/10 ~ /20；有 RHPZ 的拓扑不得高于 <i>f</i><sub>rhpz</sub>/3；数字控制另扣延时预算（见 <a href="circuit-analysis.html">电路与系统分析</a> 4.2 节）。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">3</div>
+    <div>
+      <div class="b">算对象在 <i>f</i><sub>c</sub> 处的增益与相位</div>
+      <div class="d">|<i>G</i>(<i>f</i><sub>c</sub>)| 和 ∠<i>G</i>(<i>f</i><sub>c</sub>)。这两个数是后面所有计算的输入。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">4</div>
+    <div>
+      <div class="b">算相位缺口，选类型</div>
+      <div class="d">所需补偿器相位 = PM目标 − 180° − ∠<i>G</i>。落在 −90°~0° → Type II；要正值 → Type III。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">5</div>
+    <div>
+      <div class="b">k 因子放极零点</div>
+      <div class="d">φ<sub>boost</sub> = 所需相位 + 90°（Type II）。<i>k</i> = tan²(45° + φ/2)，零点极点按 5.1 节摆放。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">6</div>
+    <div>
+      <div class="b">配平增益</div>
+      <div class="d">令 |<i>G</i><sub>c</sub>(<i>f</i><sub>c</sub>)| · |<i>G</i>(<i>f</i><sub>c</sub>)| = 1，解出补偿器增益常数 <i>K</i>，再按 4.2 节公式折算成 R、C。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">7</div>
+    <div>
+      <div class="b">全工况校验</div>
+      <div class="d">最低输入 / 满载 / 轻载（<i>Q</i> 变大）、起动大信号、<i>f</i><sub>sw</sub>/2 以上滚降。任何一项不达标回到第 2 步调 <i>f</i><sub>c</sub>，而不是硬凑元件。</div>
+    </div>
+  </div>
+</div>
+
+<h3 id="ch05-3">5.3 极零点放置的经验修正</h3>
+<p>k 因子给出的是一种<strong>解析、对称、且对元件误差不敏感的</strong>极零点配置——说它"方便"是准确的，说它"最优"则不严谨（"最优"要先定义优化目标）。工程上常做两处手动修正：</p>
+<ul>
+<li><strong>零点别压在 ESR 零点的"未知区"</strong>：电解电容的 <i>f</i><sub>z,esr</sub> 随温度可漂 2~3 倍。若 k 因子算出的 <i>f</i><sub>z</sub> 恰好落在 ESR 零点附近，把补偿零点再下移一点，用确定性换稳健性。</li>
+<li><strong>高频极点至少留一个在 <i>f</i><sub>sw</sub>/2 ~ <i>f</i><sub>sw</sub></strong>：无论 k 因子算出什么，都建议在开关频率附近额外压一个极点，把开关纹波和谐波从误差通道里滤掉，同时保证高频段幅频尽早跌穿 0 dB，GM 才有保证。</li>
+</ul>
+
+<h2 id="ch06"><span class="num">06</span>完整算例：12 V → 3.3 V / 10 A 电流模式 Buck（Type II）</h2>
+
+<h3 id="ch06-1">6.1 设计规格与功率级参数</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:34%">项目</th><th>数值</th></tr></thead>
+<tbody>
+<tr><td>输入 / 输出 / 负载</td><td><i>V</i><sub>in</sub> = 12 V，<i>V</i><sub>out</sub> = 3.3 V，<i>I</i><sub>o</sub> = 10 A（<i>R</i><sub>load</sub> = 0.33 Ω）</td></tr>
+<tr><td>开关频率</td><td><i>f</i><sub>sw</sub> = 300 kHz</td></tr>
+<tr><td>电感</td><td><i>L</i> = 4.7 µH（Δ<i>i</i><sub>L</sub> = 3.3×0.725/(4.7µ×300k) ≈ 1.7 A，占满载 17%）</td></tr>
+<tr><td>输出电容</td><td>2 × 470 µF 聚合物，<i>C</i> = 940 µF，<i>r</i><sub>C</sub> = 15 mΩ</td></tr>
+<tr><td>电流检测</td><td><i>R</i><sub>i</sub> = 20 mΩ（检流电阻 + 放大）</td></tr>
+<tr><td>反馈分压</td><td><i>V</i><sub>ref</sub> = 0.8 V → <i>H</i> = 0.8/3.3 = 0.242</td></tr>
+<tr><td>控制方式</td><td>峰值电流模式，模拟运放补偿</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch06-2">6.2 第 1~2 步：对象传函与穿越频率</h3>
+<p>电流模式对象（补偿器输出到输出电压，含分压）：</p>
+<div class="eq">
+<i>G</i>(<i>s</i>) = <i>H</i> · (<i>R</i><sub>load</sub>/<i>R</i><sub>i</sub>) · (1 + <i>s r</i><sub>C</sub><i>C</i>) / (1 + <i>s R</i><sub>load</sub><i>C</i>)
+</div>
+<p>逐项代入：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:34%">特征量</th><th>计算</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>直流增益</td><td>0.242 × 0.33/0.02</td><td>4.0 → <b>+12 dB</b></td></tr>
+<tr><td>低频极点</td><td>1/(2π·0.33·940 µF)</td><td><b>513 Hz</b></td></tr>
+<tr><td>ESR 零点</td><td>1/(2π·15 mΩ·940 µF)</td><td><b>11.3 kHz</b></td></tr>
+<tr><td>穿越频率</td><td><i>f</i><sub>sw</sub>/30（聚合物电容 ESR 零点已可见，相位条件好，取保守值）</td><td><b>10 kHz</b></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch06-3">6.3 第 3~4 步：相位缺口与 k 因子</h3>
+<p>对象在 10 kHz 处的增益与相位：</p>
+<div class="eq">
+|<i>G</i>(10 kHz)| = 4.0 × |1+<i>j</i>10/11.3| / |1+<i>j</i>10/0.513| = 4.0 × 1.345 / 19.53 = 0.276&nbsp;&nbsp;<span class="lbl">−11.2 dB</span>
+</div>
+<div class="eq">
+∠<i>G</i>(10 kHz) = arctan(10/11.3) − arctan(10/0.513) = 41.5° − 87.1° = <b>−45.6°</b>
+</div>
+<p>目标 PM = 60°，所需补偿器相位：</p>
+<div class="eq">
+∠<i>G</i><sub>c</sub> = PM − 180° − ∠<i>G</i> = 60° − 180° + 45.6° = <b>−74.4°</b>
+</div>
+<p>−90° ≤ −74.4° ≤ 0°，<strong>Type II 足够</strong>，所需提升：</p>
+<div class="eq">
+φ<sub>boost</sub> = −74.4° − (−90°) = 15.6°&nbsp;&nbsp;→&nbsp;&nbsp;<i>k</i> = tan²(45° + 7.8°) = 1.73&nbsp;&nbsp;→&nbsp;&nbsp;√<i>k</i> = 1.32
+</div>
+<div class="eq">
+<i>f</i><sub>z</sub> = 10 k/1.32 = <b>7.6 kHz</b>&nbsp;&nbsp;&nbsp;&nbsp;<i>f</i><sub>p</sub> = 10 k × 1.32 = <b>13.2 kHz</b>
+</div>
+
+<h3 id="ch06-4">6.4 第 5~6 步：传函配平与元件值</h3>
+<p>Type II 传函取 <i>G</i><sub>c</sub>(<i>s</i>) = <i>K</i>(1+<i>s</i>/ω<sub>z</sub>)/[<i>s</i>(1+<i>s</i>/ω<sub>p</sub>)]。配平条件 |<i>G</i><sub>c</sub>(10 k)| = 1/0.276 = 3.63：</p>
+<div class="eq">
+<i>K</i> · |1+<i>j</i>10/7.6| / (2π·10⁴·|1+<i>j</i>10/13.2|) = 3.63&nbsp;&nbsp;→&nbsp;&nbsp;<i>K</i> = 3.63 × 62832×1.258 / 1.653 = <b>1.74×10⁵ rad/s</b>
+</div>
+<p>运放实现（<i>Z</i><sub>in</sub> = <i>R</i><sub>1</sub>，<i>Z</i><sub>f</sub> = <i>R</i><sub>2</sub>+<i>C</i><sub>1</sub> 串联再并 <i>C</i><sub>2</sub>），按精确公式 <i>f</i><sub>p</sub> = <i>f</i><sub>z</sub>(1+<i>C</i><sub>1</sub>/<i>C</i><sub>2</sub>) 解出 <i>C</i><sub>1</sub>/<i>C</i><sub>2</sub> = 0.73：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:26%">元件</th><th style="width:34%">计算值</th><th>取标准值</th></tr></thead>
+<tbody>
+<tr><td><i>R</i><sub>1</sub></td><td>先按控制器误差放大器结构与推荐阻抗范围选定（见下）</td><td><b>10 kΩ</b>（本例演示取值）</td></tr>
+<tr><td><i>C</i><sub>1</sub>（串接电容）</td><td>1/(<i>K R</i><sub>1</sub>(1+<i>C</i><sub>1</sub>/<i>C</i><sub>2</sub>)) = 0.244 nF</td><td><b>0.22 nF</b></td></tr>
+<tr><td><i>C</i><sub>2</sub>（并接电容）</td><td><i>C</i><sub>1</sub>/0.73 = 0.334 nF</td><td><b>0.33 nF</b></td></tr>
+<tr><td><i>R</i><sub>2</sub></td><td>1/(2π<i>f</i><sub>z</sub><i>C</i><sub>1</sub>) = 85.8 kΩ</td><td><b>84.5 kΩ</b></td></tr>
+</tbody>
+</table>
+</div>
+<p>标准值复算实际零极点：<i>f</i><sub>z</sub> = 8.6 kHz，<i>f</i><sub>p</sub> = 14.3 kHz，<i>K</i> = 1.82×10⁵。代入校验 |<i>T</i>(10 k)| ≈ 1.00，未见漂移。</p>
+<div class="note warn">
+  <p><b><i>R</i><sub>1</sub> 不是"任意取"。</b>它是补偿网络的阻抗等级基准，一动则全动：① 决定 <i>C</i><sub>1</sub>、<i>C</i><sub>2</sub> 的绝对容值（<i>R</i><sub>1</sub> 越大、电容越小，小到几百 pF 时 PCB 寄生电容和运放输入电容就开始参与）；② 与误差放大器的输入偏置电流一起产生直流误差；③ 贡献热噪声；④ 加载分压网络、影响输出精度；⑤ 决定运放需要驱动多大的反馈阻抗。</p>
+  <p>所以正确顺序是：<b>先按控制器误差放大器结构、数据手册推荐的阻抗范围、以及噪声 / 偏置要求选定 <i>R</i><sub>1</sub>，再由目标 <i>K</i> 反算其余元件</b>。本例为演示方便取 10 kΩ。</p>
+  <p><b>还要注意一个前提：</b>上面整套 <i>Z</i><sub>f</sub>/<i>Z</i><sub>in</sub> 运放模型只适用于<strong>电压型误差放大器（VEA）</strong>。很多 PWM 控制器用的是 <strong>跨导型误差放大器（gm EA / OTA）</strong>——它的输出是电流、补偿网络接在 COMP 脚对地，传函形式完全不同（<i>G</i><sub>c</sub> = <i>g</i><sub>m</sub>·<i>Z</i><sub>comp</sub>，不含 <i>Z</i><sub>in</sub>）。<b>先确认你的芯片是哪一种，再套公式。</b></p>
+</div>
+
+<h3 id="ch06-5">6.5 第 7 步：校验（满载 / 轻载 / 大信号）</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:28%">校验项</th><th>计算</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>穿越频率处 |<i>T</i>|</td><td>0.276 × 3.64</td><td>1.00 ✓</td></tr>
+<tr><td>相位裕度（标准值复算）</td><td>180° + (−75.5°) + (−45.6°)</td><td><b>58.9°</b> ✓</td></tr>
+<tr><td>增益裕度</td><td>简化模型相位最深 −150.4°（@1.9 kHz），<b>不穿 −180°</b></td><td><b>GM → ∞（形式值，不可当真）</b>；改用 300 kHz 处 |<i>T</i>| = −30.7 dB（150 kHz 处 −21.1 dB）作高频衰减余量指标</td></tr>
+<tr><td>轻载（1 A）CCM 校验</td><td><i>R</i><sub>load</sub>：0.33 Ω → 3.3 Ω（<b>×10</b>）→ 直流增益 <b>+20 dB</b>（+12 → +32 dB），低频极点由 513 Hz 降至 <b>51.3 Hz</b>；但 ESR 零点不变，且 <i>f</i> ≫ <i>f</i><sub>p</sub> 后 <i>G</i>(<i>s</i>) ≈ <i>H</i>/(<i>s R</i><sub>i</sub><i>C</i>) <b>与 <i>R</i><sub>load</sub> 无关</b>——10 kHz 处实测 |<i>G</i>| = −11.25 dB（满载）vs −11.24 dB（1 A），几乎一模一样</td><td>PM 基本不变 ✓</td></tr>
+<tr><td>更轻载（&lt; 0.5 A，DCM）</td><td>简化模型失效：DCM 下对象增益下降、出现额外低频极点</td><td>需实测确认（见下方警示）</td></tr>
+<tr><td>大信号</td><td>10 A 阶跃时 <i>V</i><sub>c</sub> 需摆动 Δ<i>i</i>×<i>R</i><sub>i</sub> = 0.2 V——这只是"需要多少摆幅"的估算</td><td><b>需核对，不能直接打勾</b>：还须结合数据手册确认运放输出范围、摆率、COMP 钳位、斜坡幅度、电流检测增益、斜率补偿与占空比上限</td></tr>
+</tbody>
+</table>
+</div>
+
+<figure>
+<img class="figimg" src="figs/margins_cm.png" alt="MATLAB 计算的第 6 章算例环路增益 Bode 图" loading="lazy" decoding="async">
+<figcaption>图 6-1　<b>算例环路的数值校验。</b>MATLAB 把 <i>T</i>(<i>s</i>) = <i>G</i><sub>c</sub>(<i>s</i>)·<i>G</i><sub>cm</sub>(<i>s</i>) 逐点算出：<b><i>f</i><sub>c</sub> = 9.997 kHz，该处相位 −121.1°，PM = 58.9°</b>，与 6.5 节手算的 58.9° 逐位吻合。但有一处必须说明：<b>简化模型下环路相位最深只到 −150.4°（@1.9 kHz），根本不穿 −180°，所以形式上 GM = ∞</b>。这不是"裕度很好"，而是模型太乐观——真实电路里 <i>f</i><sub>sw</sub> 附近的极点、采样延时、驱动延时都会继续压低高频相位（见 5.3 节"高频极点"那条）。工程上因此改看高频段衰减余量作为替代指标。</figcaption>
+<span class="src"><span class="tag own">自绘</span>MATLAB 数值计算生成 · 脚本 <code>figs/gen_figs.m</code> · 与第 6 章算例参数完全一致</span>
+</figure>
+<figure>
+<img class="figimg" src="figs/before_after.png" alt="MATLAB 计算的补偿前后 Bode 图对比" loading="lazy" decoding="async">
+<figcaption>图 6-2　<b>补偿前 vs 补偿后，看的就是"抬"和"转"两件事。</b>补偿前对象在 10 kHz 处是 <b>−11.25 dB / −45.5°</b>（红虚线）；补偿器在同一点提供 <b>+11.25 dB / −75.5°</b>，两者相乘恰好是 0 dB / −121.1°，于是环路以 −20 dB/dec 干净地穿越 0 dB。<b>放大看穿越斜率：整条环路在穿越点前后保持 −20 dB/dec，这是 PM 能上 50° 以上的结构性前提；斜率一旦变成 −40 dB/dec，相位上限就是 0°，再怎么摆零点都救不回来。</b></figcaption>
+<span class="src"><span class="tag own">自绘</span>MATLAB 数值计算生成 · 脚本 <code>figs/gen_figs.m</code></span>
+</figure>
+
+<div class="note warn">
+  <p><b>DCM 轻载是简化模型的盲区。</b>本例在 10% 负载（1 A）仍处于 CCM 边界附近，模型尚可外推；负载再降进入 DCM 后，对象增益掉、低频多出一个极点，实际穿越频率和 PM 都会移动。<b>电流模式电源的轻载啸叫，一半以上是 DCM 区补偿退化</b>，处理办法是把轻载当独立工况实测，必要时加最小负载或切模式。</p>
+</div>
+<div class="note ok">
+  <p><b>这个算例有多"典型"？</b>电流模式 + Type II + k 因子，是中小功率 Buck 最常见的组合，流程 30 分钟可以走完。对比电压模式同样规格要用 Type III（参照 <a href="circuit-analysis.html">电路与系统分析</a> 第 6 章算例），计算量和元件数都会上升——<b>如果条件允许，优先选电流模式，补偿设计的难度直接降一档。</b></p>
+</div>
+
+<h2 id="ch07"><span class="num">07</span>隔离反馈：TL431 + 光耦的补偿</h2>
+
+<h3 id="ch07-1">7.1 为什么它特殊</h3>
+<p>隔离电源（反激、正激、LLC 副边调节）不能用运放直接把误差送过隔离边界——跨越隔离带的是一个光耦，带宽窄、增益随 CTR 漂移、还有 2 级管压降之类的非理想。行业答案是 <strong>TL431 + 光耦</strong>：TL431 是"基准 + 运放 + 三极管"三合一，直接拿分压误差去拉光耦 LED 的电流。麻烦在于：<strong>补偿网络被隔离带劈成了两半，一半在原边、一半在副边，很多教科书公式不能直接套。</strong></p>
+<div class="note warn">
+  <p><b>本章的定位：只分析一种典型实现。</b>下面讨论的是"TL431 阴极经补偿网络接 REF（或并联 <i>R</i><sub>z</sub>–<i>C</i><sub>z</sub> 到 REF）+ 光耦从阴极取电流"这一类最常见的 Type-II 接法。<strong>TL431 的阴极–REF 之间怎么接补偿元件，决定了整条链的零极点形式——不同接法的小信号传函并不相同</strong>，并不存在唯一固定的"TL431 等效 Type II"。实际设计请按你手上的具体电路重新推导，或参照厂商的隔离反馈设计文档（见参考资料）。</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>TL431 + 光耦反馈通道：慢通道与快通道</title>
+<desc>输出电压经上分压电阻和下分压电阻分压后送入 TL431 参考端，构成慢通道；同时输出经电阻串联电容直接注入参考端，构成快通道。TL431 阴极驱动光耦 LED，光耦三极管侧接到 PWM 芯片的 COMP 引脚，COMP 电容决定原边极点。</desc>
+
+<line x1="40" y1="40" x2="400" y2="40" stroke="var(--border-strong)" stroke-width="1.6"/>
+<text x="34" y="36" font-size="11" fill="var(--muted)">Vout</text>
+<line x1="40" y1="245" x2="400" y2="245" stroke="var(--border-strong)" stroke-width="1.6"/>
+<text x="34" y="262" font-size="11" fill="var(--muted)">SGND</text>
+
+<!-- divider -->
+<line x1="70" y1="40" x2="70" y2="60" stroke="var(--border-strong)" stroke-width="1.4"/>
+<rect x="56" y="60" width="28" height="34" rx="3" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.7"/>
+<text x="70" y="81" font-size="10" text-anchor="middle" fill="var(--t1-title)">R上</text>
+<line x1="70" y1="94" x2="70" y2="120" stroke="var(--border-strong)" stroke-width="1.4"/>
+<circle cx="70" cy="120" r="2.6" fill="var(--border-strong)"/>
+<text x="46" y="124" font-size="9.5" fill="var(--faint)">2.5V</text>
+<rect x="56" y="140" width="28" height="34" rx="3" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.7"/>
+<text x="70" y="161" font-size="10" text-anchor="middle" fill="var(--t1-title)">R下</text>
+<line x1="70" y1="174" x2="70" y2="245" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="70" y1="120" x2="248" y2="182" stroke="var(--border-strong)" stroke-width="1.4"/>
+
+<!-- fast channel -->
+<line x1="150" y1="40" x2="150" y2="58" stroke="var(--warn)" stroke-width="1.4"/>
+<rect x="136" y="58" width="28" height="30" rx="3" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="0.7"/>
+<text x="150" y="77" font-size="10" text-anchor="middle" fill="var(--warn)">Rz</text>
+<line x1="150" y1="88" x2="150" y2="100" stroke="var(--warn)" stroke-width="1.4"/>
+<rect x="136" y="100" width="28" height="30" rx="3" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="0.7"/>
+<text x="150" y="119" font-size="10" text-anchor="middle" fill="var(--warn)">Cz</text>
+<line x1="150" y1="130" x2="150" y2="182" stroke="var(--warn)" stroke-width="1.4"/>
+<line x1="150" y1="182" x2="248" y2="182" stroke="var(--warn)" stroke-width="1.4"/>
+<text x="150" y="205" font-size="10" fill="var(--warn)" text-anchor="middle">快通道</text>
+
+<!-- TL431 -->
+<polygon points="235,158 265,158 250,212" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="1"/>
+<text x="268" y="178" font-size="10.5" fill="var(--t2-title)">TL431</text>
+<line x1="248" y1="182" x2="235" y2="182" stroke="var(--border-strong)" stroke-width="1.4"/>
+<text x="216" y="194" font-size="9.5" fill="var(--faint)">REF</text>
+<line x1="250" y1="158" x2="250" y2="150" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="250" y1="212" x2="250" y2="245" stroke="var(--border-strong)" stroke-width="1.4"/>
+
+<!-- LED branch -->
+<line x1="330" y1="40" x2="330" y2="58" stroke="var(--border-strong)" stroke-width="1.4"/>
+<rect x="316" y="58" width="28" height="30" rx="3" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.7"/>
+<text x="330" y="77" font-size="10" text-anchor="middle" fill="var(--t1-title)">Rled</text>
+<line x1="330" y1="88" x2="330" y2="104" stroke="var(--border-strong)" stroke-width="1.4"/>
+<polygon points="322,104 338,104 330,120" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="1"/>
+<line x1="322" y1="120" x2="338" y2="120" stroke="var(--t2-stroke)" stroke-width="1.4"/>
+<line x1="338" y1="100" x2="348" y2="94" stroke="var(--warn)" stroke-width="1"/>
+<line x1="340" y1="110" x2="350" y2="104" stroke="var(--warn)" stroke-width="1"/>
+<line x1="330" y1="120" x2="330" y2="150" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="250" y1="150" x2="330" y2="150" stroke="var(--border-strong)" stroke-width="1.4"/>
+<text x="356" y="116" font-size="10" fill="var(--faint)">LED</text>
+
+<!-- opto -->
+<line x1="360" y1="96" x2="470" y2="120" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 4"/>
+<circle cx="500" cy="135" r="24" fill="var(--card)" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="500" y1="111" x2="500" y2="60" stroke="var(--border-strong)" stroke-width="1.4"/>
+<polygon points="492,124 508,130 492,130" fill="var(--border-strong)"/>
+<line x1="492" y1="146" x2="508" y2="140" stroke="var(--border-strong)" stroke-width="1.4"/>
+<text x="530" y="70" font-size="10.5" fill="var(--warn)">COMP（至 PWM 芯片）</text>
+<line x1="500" y1="159" x2="500" y2="185" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="490" y1="185" x2="510" y2="185" stroke="var(--border-strong)" stroke-width="1.4"/>
+<line x1="494" y1="190" x2="506" y2="190" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="497" y1="195" x2="503" y2="195" stroke="var(--border-strong)" stroke-width="1"/>
+<text x="530" y="160" font-size="10" fill="var(--muted)">光耦接收侧</text>
+<text x="440" y="270" font-size="10.5" fill="var(--faint)">原边 · 副边之间仅有光与一个 COMP 电容相连</text>
+</svg>
+<figcaption>图 7-1　TL431 + 光耦反馈通道。慢通道（黑）：分压网络决定直流精度；快通道（橙）：<i>R</i><sub>z</sub>–<i>C</i><sub>z</sub> 支路把输出的快速变化直接注入 REF 端，补偿器的主要零点就藏在它和 LED 支路的相互作用里。原边侧 COMP 引脚对地的电容给出高频极点。<b>补偿器的"传函"被光耦劈成两半，必须整条链一起推。</b></figcaption>
+</figure>
+
+<h3 id="ch07-2">7.2 慢通道与快通道</h3>
+<p>把整条链整理成传函（忽略次要项），大致是一个"被拆开的 Type II"：</p>
+<div class="eq">
+<i>G</i><sub>FB</sub>(<i>s</i>) ≈ <i>CTR</i>·<i>R</i><sub>pull-up</sub> · (1 + <i>s R</i><sub>z</sub><i>C</i><sub>z</sub>) / [<i>s</i>(<i>R</i><sub>上</sub>+<i>R</i><sub>下</sub>)<i>C</i><sub>z</sub>] · 1/(1 + <i>s R</i><sub>pull-up</sub><i>C</i><sub>COMP</sub>)
+</div>
+<ul>
+<li><strong>积分作用</strong>来自"TL431 阴极电流 − 补偿网络阻抗"构成的低频高增益动态：上面的式子已经把它写成 <i>s</i>(<i>R</i><sub>上</sub>+<i>R</i><sub>下</sub>)<i>C</i><sub>z</sub> 那一项。<strong>它不是"因为 TL431 会吸 LED 电流"就自动出现的</strong>——换成别的阴极–REF 补偿接法，原点附近的极零点形式会变。所以这里不能照抄，要按你的实际接法推。</li>
+<li><strong>零点</strong>来自快通道 <i>R</i><sub>z</sub><i>C</i><sub>z</sub>——这就是为什么快通道电容不能省。</li>
+<li><strong>高频极点</strong>两个来源：原边 COMP 电容、LED 支路的动态电阻与结电容。前者你设计时放，后者是寄生，通常落在几十 kHz，刚好帮忙压高频。</li>
+<li><strong>增益</strong>里混着光耦 CTR——一个随电流、温度、老化漂移 ±30% 的量。<strong>把增益配平到依赖 CTR 的设计都是脆弱的</strong>，要按 CTR 最小值校验穿越频率，按最大值校验高频段不鼓包。</li>
+</ul>
+
+<h3 id="ch07-3">7.3 设计要点与常见错误</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:36%">要点</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>带宽上限按光耦定</td><td>光耦的有效小信号带宽是<b>工作点的函数</b>——随器件型号、LED 电流 <i>I</i><sub>F</sub>、集电极电流与负载、<i>V</i><sub>CE</sub>、寄生电容而变，不能记成一个固定数字。通用光耦常见量级在几 kHz 到十几 kHz；<b>用数据手册的 CTR–<i>I</i><sub>F</sub> 曲线和 <i>C</i><sub>CE</sub> 估算自己工作点的带宽，再取 <i>f</i><sub>c</sub> 为其 1/3 以内</b>。要高带宽换高速光耦或数字隔离器</td></tr>
+<tr><td>LED 支路必须留偏置</td><td><i>R</i><sub>led</sub> 保证 TL431 最小阴极电流（1 mA 级）和光耦 LED 最小 IF，否则小信号时 CTR 雪崩式下降</td></tr>
+<tr><td>快通道电容 <i>C</i><sub>z</sub> 不可省</td><td>没有它，补偿器只剩积分 + 寄生极点，相位裕度全靠运气</td></tr>
+<tr><td>按 CTR 两个极端复算</td><td>CTR,min → <i>f</i><sub>c</sub> 掉、低频增益掉；CTR,max → 高频段增益抬、GM 恶化。两端都要满足裕度</td></tr>
+<tr><td>原边 COMP 电容别随手 100 nF</td><td>它就是你的高频极点位置，按 <i>f</i><sub>p</sub> ≈ <i>f</i><sub>c</sub>·√<i>k</i> 反推，不是越大越稳</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="ch08"><span class="num">08</span>实测验证：注入法与偏差定位</h2>
+
+<h3 id="ch08-1">8.1 环路分析仪注入法</h3>
+<p>环路增益没法"从外面"测——闭环把一切都焊死了。标准做法是在环内串一个小电阻（5~50 Ω），用隔离变压器把分析仪的扰动信号注入进去，同时测电阻两侧电压 <i>v</i><sub>2</sub>/<i>v</i><sub>1</sub>，其比值就是 T(jω)：</p>
+<div class="eq">
+<i>T</i>(<i>j</i>ω) = <i>v</i><sub>2</sub> / <i>v</i><sub>1</sub>
+<span class="lbl">注入电阻两端，顺着信号流方向取分母分子</span>
+</div>
+<p>三条铁律：</p>
+<ol>
+<li><strong>注入位置在高阻抗节点下游</strong>（分压电阻上端，见图 0-1 黄点）。放错了，源阻抗参与分压，曲线全错。</li>
+<li><strong>注入幅度要"小信号"</strong>：以输出纹波不畸变为限。幅度过大，调制器饱和，测出的 PM 偏乐观；幅度过小，噪声淹没低频段。</li>
+<li><strong>扫频范围</strong>：10 Hz 到 <i>f</i><sub>sw</sub>/2 以上。<i>f</i><sub>sw</sub>/2 以上的数据受平均模型失效和探头衰减影响，只能做参考。</li>
+</ol>
+
+<h3 id="ch08-2">8.2 预测与实测偏差的来源</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:30%">症状</th><th>最可能的根源（按概率排序）</th></tr></thead>
+<tbody>
+<tr><td>低频段增益整体偏差</td><td>漏乘 <i>H</i> 或 <i>F</i><sub>m</sub>；分压比与设计不符；检流增益不对</td></tr>
+<tr><td>穿越频率比设计低</td><td>光耦 CTR 低于预期（隔离电源）；运放增益带宽积吃掉了中频增益</td></tr>
+<tr><td>相位实测比预测差 10°~30°</td><td>寄生延时（数字环路采样延时、光耦响应延时）；ESR 实际值偏离；走线寄生电阻改变了 <i>Q</i></td></tr>
+<tr><td>高频段（&gt; 50 kHz）鼓包</td><td>省略或放错高频极点；PCB 寄生耦合；采样开关噪声进入误差通道</td></tr>
+<tr><td>轻载 PM 骤降</td><td>DCM 退化（电流模式）；<i>Q</i> 抬升谐振峰（电压模式）</td></tr>
+<tr><td>曲线出现窄毛刺</td><td>频谱倒送（<i>f</i><sub>sw</sub> 及其谐波混入注入信号）——不是环路问题，是测量问题</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch08-3">8.3 验收判据清单</h3>
+<ul>
+<li>PM ≥ 45°（目标 60°），在<strong>最低输入、满载、轻载、起动后</strong>四种工况下逐一确认。</li>
+<li>GM ≥ 10 dB，且 <i>ω</i><sub>180</sub> 附近没有第二隆起。</li>
+<li>优先设计成<strong>一个清晰的主 0 dB 穿越</strong>，且该处斜率 −20 dB/dec。若存在多次穿越，必须用 Nyquist 判据或完整环路响应复核稳定性——<strong>多次穿越不等于不稳定，但此时不能再靠"读一个 PM"下结论</strong>。</li>
+<li>负载阶跃（10%↔100%）:超调与恢复时间符合 3.4 节 PM 对应关系；无 audible noise。</li>
+<li>起动 / 短路恢复等大信号过程无振荡（大信号稳定性不能靠 Bode 图保证，必须实测）。</li>
+</ul>
+
+<h2 id="ch09"><span class="num">09</span>十个常见误区</h2>
+<ol>
+<li><strong>漏乘 <i>H</i> 或 <i>F</i><sub>m</sub></strong>。环路增益是四项乘积，少乘分压比 0.242 就是 12 dB 的误差，穿越频率直接差一倍以上。</li>
+<li><strong>把"补偿器相位"当成"相位裕度"</strong>。补偿器绝对相位 −40° 不等于 PM 40°；裕度永远用 T(s) 整体相位算。</li>
+<li><strong>零点极点放反</strong>。Type II 的 <i>f</i><sub>z</sub> 必须低于 <i>f</i><sub>p</sub>；放反了补偿器变成相位黑洞，PM 直接掉 90°。</li>
+<li><strong>把裕度押在 ESR 零点上</strong>。电解电容 ESR 随温度、老化漂 2~3 倍，零点跟着跑；低温开机振荡的经典根源。</li>
+<li><strong>无视 RHPZ 硬拉带宽</strong>。Boost / 反激把 <i>f</i><sub>c</sub> 定到 <i>f</i><sub>rhpz</sub>/3 以上，RHPZ 那 −90° 会直接吃掉相位储备——补偿器补不回来，只能降带宽、减电感或换拓扑。</li>
+<li><strong>只在满载校验</strong>。轻载 <i>Q</i> 抬升（电压模式）或进入 DCM（电流模式）才是最恶劣工况。</li>
+<li><strong>TL431 方案里省掉快通道电容</strong>，或把原边 COMP 电容随手放 100 nF。补偿器被劈成两半后，这两个位置就是你的零点和极点，不是"退耦电容"。</li>
+<li><strong>k 因子算完不做经验修正</strong>。零点正好落在 ESR 零点未知区、高频极点离 <i>f</i><sub>sw</sub> 太远——公式最优不等于工程最优。</li>
+<li><strong>大信号不检查</strong>。小信号 PM 60° 的环路照样可能在起动、短路恢复时振荡：运放摆率、钳位、斜率补偿不足都是大信号问题，Bode 图照不出来。</li>
+<li><strong>只仿真不实测</strong>。平均模型在 <i>f</i><sub>sw</sub>/2 以上失效、寄生参数不在模型里、CTR 随温度漂——没有第 8 章的注入法实测，就没有"设计完成"这回事。</li>
+</ol>
+
+<h2 id="ch10"><span class="num">10</span>公式速查卡</h2>
+
+<h3 id="ch10-1">对象传函与极零点</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">电压模式 Buck</div><div class="e"><i>G</i><sub>vd</sub> = <i>V</i><sub>in</sub>(1+<i>s r</i><sub>C</sub><i>C</i>)/(1+<i>s</i>(<i>L</i>/<i>R</i>+<i>r</i><sub>C</sub><i>C</i>)+<i>s</i>²<i>LC</i>)</div></div>
+  <div class="fc"><div class="h">电流模式 Buck</div><div class="e"><i>G</i><sub>vc</sub> ≈ (<i>R</i><sub>load</sub>/<i>R</i><sub>i</sub>)(1+<i>s r</i><sub>C</sub><i>C</i>)/(1+<i>s R</i><sub>load</sub><i>C</i>)</div></div>
+  <div class="fc"><div class="h">LC 双重极点</div><div class="e">ω<sub>0</sub> = 1/√(<i>LC</i>)</div></div>
+  <div class="fc"><div class="h">ESR 零点</div><div class="e">ω<sub>z</sub> = 1/(<i>r</i><sub>C</sub><i>C</i>)</div></div>
+  <div class="fc"><div class="h">品质因数</div><div class="e"><i>Q</i> = 1/(ω<sub>0</sub>(<i>L</i>/<i>R</i>+<i>r</i><sub>C</sub><i>C</i>))</div></div>
+  <div class="fc"><div class="h">RHPZ（理想 CCM Boost）</div><div class="e">ω<sub>rhpz</sub> = <i>R</i>(1−<i>D</i>)²/<i>L</i>，<i>f</i><sub>c</sub> ≤ <i>f</i><sub>rhpz</sub>/3~5<br><span class="lbl">Buck-Boost / 反激为 ω<sub>rhpz</sub> = <i>R</i>(1−<i>D</i>)²/(<i>D</i><i>L</i>)——多一个 <i>D</i>，不可混用</span></div></div>
+</div>
+
+<h3 id="ch10-2">裕度判据</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">环路增益</div><div class="e"><i>T</i>(<i>s</i>) = <i>G</i><sub>c</sub>·<i>F</i><sub>m</sub>·<i>G</i><sub>vd</sub>·<i>H</i>（一项都不能少）</div></div>
+  <div class="fc"><div class="h">相位裕度</div><div class="e">PM = 180° + ∠<i>T</i>(<i>j</i>ω<sub>c</sub>)</div></div>
+  <div class="fc"><div class="h">增益裕度</div><div class="e">GM = −20 log|<i>T</i>(<i>j</i>ω<sub>180</sub>)|</div></div>
+  <div class="fc"><div class="h">工程默认</div><div class="e">PM 45°~60°，GM ≥ 10 dB，<i>f</i><sub>c</sub> = <i>f</i><sub>sw</sub>/10~20</div></div>
+  <div class="fc"><div class="h">PM ↔ 阻尼</div><div class="e">ζ ≈ PM/100（PM 用度）<br><span class="lbl">粗略经验式，适用 PM 30°~70° 的单主导二阶环路；勿外推</span></div></div>
+  <div class="fc"><div class="h">斜率-相位对应</div><div class="e">−20 dB/dec ↔ −90°，−40 dB/dec ↔ −180°</div></div>
+</div>
+
+<h3 id="ch10-3">Type I / II / III</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">运放补偿器通式</div><div class="e"><i>G</i><sub>c</sub>(<i>s</i>) = −<i>Z</i><sub>f</sub>/<i>Z</i><sub>in</sub></div></div>
+  <div class="fc"><div class="h">Type II 传函</div><div class="e"><i>G</i><sub>c</sub> = <i>K</i>(1+<i>s</i>/ω<sub>z</sub>)/[<i>s</i>(1+<i>s</i>/ω<sub>p</sub>)]</div></div>
+  <div class="fc"><div class="h">Type II 零极点</div><div class="e">ω<sub>z</sub> = 1/(<i>R</i><sub>2</sub><i>C</i><sub>1</sub>)，ω<sub>p</sub> ≈ 1/(<i>R</i><sub>2</sub><i>C</i><sub>2</sub>)，<i>K</i> = 1/(<i>R</i><sub>1</sub>(<i>C</i><sub>1</sub>+<i>C</i><sub>2</sub>))</div></div>
+  <div class="fc"><div class="h">Type III 传函</div><div class="e"><i>G</i><sub>c</sub> = <i>K</i>(1+<i>s</i>/ω<sub>z1</sub>)(1+<i>s</i>/ω<sub>z2</sub>)/[<i>s</i>(1+<i>s</i>/ω<sub>p1</sub>)(1+<i>s</i>/ω<sub>p2</sub>)]</div></div>
+  <div class="fc"><div class="h">Type II 提升上限</div><div class="e">+90°（绝对相位 −90°→0°）</div></div>
+  <div class="fc"><div class="h">Type III 提升上限</div><div class="e">+180°（绝对相位 −90°→+90°）</div></div>
+</div>
+
+<h3 id="ch10-4">k 因子法</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">k 因子定义</div><div class="e"><i>k</i> = tan²(45° + φ<sub>boost</sub>/2)<br><span class="lbl">Type III 把 φ/2 换成 φ/4</span></div></div>
+  <div class="fc"><div class="h">Type II 放置</div><div class="e"><i>f</i><sub>z</sub> = <i>f</i><sub>c</sub>/√<i>k</i>，<i>f</i><sub>p</sub> = <i>f</i><sub>c</sub>·√<i>k</i>（<i>k</i> = <i>f</i><sub>p</sub>/<i>f</i><sub>z</sub>）</div></div>
+  <div class="fc"><div class="h">Type III 放置</div><div class="e">双零点重合 <i>f</i><sub>z1</sub> = <i>f</i><sub>z2</sub> = <i>f</i><sub>c</sub>/√<i>k</i><br>双极点重合 <i>f</i><sub>p1</sub> = <i>f</i><sub>p2</sub> = <i>f</i><sub>c</sub>·√<i>k</i><br><span class="lbl">本文采用的对称形式；实际拓扑映射后两个零 / 极点未必严格重合</span></div></div>
+  <div class="fc"><div class="h">所需补偿器相位</div><div class="e">∠<i>G</i><sub>c</sub> = PM − 180° − ∠<i>G</i>(<i>f</i><sub>c</sub>)</div></div>
+  <div class="fc"><div class="h">增益配平</div><div class="e">|<i>G</i><sub>c</sub>(<i>f</i><sub>c</sub>)| = 1/|<i>G</i>(<i>f</i><sub>c</sub>)|</div></div>
+  <div class="fc"><div class="h">经验修正</div><div class="e">高频极点必留一个于 <i>f</i><sub>sw</sub>/2~<i>f</i><sub>sw</sub></div></div>
+</div>
+
+<h3 id="ch10-5">TL431 与光耦</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">快通道零点</div><div class="e">ω<sub>z</sub> = 1/(<i>R</i><sub>z</sub><i>C</i><sub>z</sub>)</div></div>
+  <div class="fc"><div class="h">原边高频极点</div><div class="e">ω<sub>p</sub> = 1/(<i>R</i><sub>pull-up</sub><i>C</i><sub>COMP</sub>)</div></div>
+  <div class="fc"><div class="h">增益含 CTR</div><div class="e">按 CTR,min 定 <i>f</i><sub>c</sub>，按 CTR,max 查高频鼓包</div></div>
+  <div class="fc"><div class="h">带宽上限</div><div class="e"><i>f</i><sub>c</sub> ≤ 光耦带宽/3</div></div>
+</div>
+
+<h2 id="ch11"><span class="num">11</span>自测：检查你是否真的掌握了</h2>
+<p>答案折叠在题目下方。先自己想，再展开对照。</p>
+
+<details>
+<summary>1 · 为什么闭环稳定性要用开环传函判断？开环判据的名字叫什么？</summary>
+<p>奈奎斯特判据。闭环极点是特征方程的根，多阶系统手算困难且看不出改法；开环增益 T(s) 是四个环节的乘积，每一项独立可测可改。奈奎斯特判据指出：闭环稳定性完全由 T(jω) 绕 −1 点的情况决定，工程上进一步简化为看 |T|=1 处的相位距离 −180° 有多远（PM）和相位穿 −180° 处的增益低于 0 dB 多少（GM）。</p>
+</details>
+
+<details>
+<summary>2 · 同一台 Buck，为什么电流模式的补偿比电压模式容易一个量级？</summary>
+<p>电流内环把电感电流直接纳入控制，外环看到的对象从"LC 双重极点（相位挖到 −180°）"降为"单极点 + ESR 零点（相位最深 −90°）"。补偿器只需提供积分器加 20°~40° 提升，Type II 足够；电压模式则通常需要 Type III 才能把相位缺口补回来。</p>
+</details>
+
+<details>
+<summary>3 · 一个 Boost 的 RHPZ 在 8 kHz，穿越频率最高定多少？想再提高带宽该动哪个元件？</summary>
+<p>按 <i>f</i><sub>c</sub> ≤ <i>f</i><sub>rhpz</sub>/3~5，最高约 1.6~2.7 kHz。想提高带宽就要推高 <i>f</i><sub>rhpz</sub> = <i>R</i>(1−<i>D</i>)²/(2π<i>L</i>)（Boost）——减小电感 <i>L</i>（代价是纹波电流变大）或降低 <i>D</i>（提高输入电压）。<b>注意这是 Boost 的式子；如果换成 Buck-Boost / 反激，分母还要多一个 <i>D</i>，同样参数下 <i>f</i><sub>rhpz</sub> 会高一倍。</b></p>
+</details>
+
+<details>
+<summary>4 · PM = 45° 和 60° 的电源，负载阶跃时表现有何不同？PM 100° 呢？</summary>
+<p>45°：ζ≈0.45，超调约 20%，有一次明显振铃。60°：ζ≈0.6，超调约 10%，基本无振铃，且留有 15° 给参数漂移——甜点。100°：过阻尼，看似"稳"实则迟钝——为了它付出的代价是零点被压得很低、中频增益小、负载阶跃时跌坑深恢复慢。PM 不是越大越好。</p>
+</details>
+
+<details>
+<summary>5 · 对象在拟定 fc 处相位是 −150°，目标 PM 60°，选 Type II 还是 Type III？</summary>
+<p>所需补偿器相位 = 60−180+150 = +30°。Type II 的绝对相位范围是 −90°~0°，给不出正相位；需要 Type III（提升量 30+90=120°，在其 0~180° 预算内）。这就是"相位缺口大于 60° 用 Type III"的具体含义。</p>
+</details>
+
+<details>
+<summary>6 · k 因子算出的零点位置恰好落在电解电容 ESR 零点附近，你改不改？</summary>
+<p>改。电解电容 ESR 随温度、频率、老化漂移 2~3 倍，ESR 零点的实际位置不确定，两个靠得极近的零点在极端温度下会互相"错位"，PM 出现不可预测的深坑。把补偿零点再下移一些，用确定性换稳健性；同时把低温工况列入校验清单。</p>
+</details>
+
+<details>
+<summary>7 · 12 V→3.3 V 的电源，分压比 0.242。你漏乘了它，算出的穿越频率会偏高还是偏低？</summary>
+<p>偏低（高估环路增益 12.3 dB，约 4 倍，穿越频率按 −20 dB/dec 斜率估算会高估约 2 个倍频程）。实际环路比以为的慢得多。这是新手实测发现"穿越频率只有设计值一半"的最常见原因。</p>
+</details>
+
+<details>
+<summary>8 · TL431 + 光耦方案中，快通道 Rz–Cz 支路给传函贡献什么？省掉它会怎样？</summary>
+<p>贡献补偿器的零点 ωz = 1/(RzCz)。省掉它，整条反馈链只剩积分作用加寄生极点，相位一路向下没有回升，PM 通常不足 30°，环路大概率振铃甚至振荡。快通道电容不是"可选的退耦"，它就是你的补偿零点。</p>
+</details>
+
+<details>
+<summary>9 · 实测 Bode 的穿越频率比设计值低了 40%，且这是台反激电源。最可能的原因？</summary>
+<p>光耦 CTR 低于预期（或 LED 偏置电流落在了 CTR 陡降区）。隔离电源的反馈增益里混着 CTR，设计时应按 CTR 最小值配平；另一个常见叠加因素是运放（TL431）增益带宽积不足，在中频吃掉了增益。先用万用表/示波器确认光耦实际工作电流，再查 CTR。</p>
+</details>
+
+<details>
+<summary>10 · 小信号 PM 60° 的电源，起动瞬间还是振荡了。Bode 图哪里照不出来？</summary>
+<p>大信号问题不在小信号模型覆盖范围内：起动时误差信号远超线性区，补偿器输出被钳位，运放/TL431 摆率不足，占空比到达极限——这些非线性行为 Bode 图完全照不出来。处理手段：软起动斜率设计、钳位/限流排序、检查斜率补偿是否覆盖起动暂态、确认补偿器输出摆动范围够。</p>
+</details>
+
+<h2 id="ch12"><span class="num">12</span>参考资料</h2>
+<p>按"一手优先"排序。补偿设计这个题目，应用笔记的工程浓度往往高于教科书。</p>
+
+<h3 id="ch12-1">教科书</h3>
+<ul>
+<li><b>Erickson &amp; Maksimović, <i>Fundamentals of Power Electronics</i>, 3rd ed.</b> —— 第 8 章「Converter transfer functions」给出各类拓扑对象的极零点全景；第 9 章「Controller design」是补偿设计的主线章节，k 因子法也在其中。</li>
+<li><b>Basso, <i>Designing Control Loops for Linear and Switching Power Supplies</i></b> —— 本文第 4~7 章的主要参照：Type II/III 的元件级推导、k 因子实操、TL431+光耦的完整处理，全书都是算例。做隔离电源补偿必读。</li>
+<li><b>Pressman, <i>Switching Power Supply Design</i></b> —— 反激 + TL431 反馈的工程章节写得很实用，可作为 Basso 的先行读物。</li>
+</ul>
+
+<h3 id="ch12-2">应用笔记（原厂）</h3>
+<ul>
+<li><b>TI SLVA662</b> ——「Compensating a Buck with Type III」，Type III 元件值推导一步步可跟算。</li>
+<li><b>TI SLUP340 / SLVA285</b> —— 电流模式控制与补偿；<i>Power Topologies Handbook</i> 各拓扑补偿速查。</li>
+<li><b>ON Semi / Infineon</b> —— TL431 反馈设计指南（快慢通道、CTR 预算、最小阴极电流）。</li>
+<li><b>Ridley Engineering</b> —— 电流模式建模与实测环路的系列文章，工程直觉浓度极高。</li>
+</ul>
+
+<h3 id="ch12-3">深水区论文</h3>
+<ul>
+<li><b>R. B. Ridley, "A new, continuous-time model for current-mode control," IEEE TPEL 1991</b> —— 电流模式对象传函的精确出处，本文 2.2 节简化模型的完整版。</li>
+<li><b>D. Venable, "The k-factor: a new mathematical tool for stabilizing feedback loops," 1983</b> —— k 因子法的原始文献，5.1 节公式的出处。</li>
+<li><b>R. D. Middlebrook, "Input filter considerations..." IAS 1976</b> —— 当输入滤波器与环路交互时，对象传函会被修改（负阻尼效应），补偿设计前必查。</li>
+</ul>
+
+<footer>
+<p>本页是「电力电子技能体系 · 建模层 02 环路补偿设计」的配套学习文档。前置阅读：<a href="circuit-analysis.html">电路与系统分析</a>。返回 <a href="index.html">技能分层地图</a>。</p>
+</footer>
+
+</div>
+
+<!--TOC-SHELLCLOSE-BEGIN-->
+</main>
+</div>
+<!--TOC-SHELLCLOSE-END-->
+<!--TOC-WIDGET-BEGIN-->
+<div class="progress" id="progress"></div>
+<button class="toc-fab" id="tocFab" type="button" aria-controls="tocPanel" aria-expanded="false">目录</button>
+<div class="toc-scrim" id="tocScrim"></div>
+<aside class="toc-panel" id="tocPanel" aria-label="目录导航" aria-hidden="true" inert>
+<div class="toc-panel-head"><span>目录</span><button class="toc-close" id="tocClose" type="button" aria-label="关闭目录">&#10005;</button></div>
+<div class="toc-panel-body" id="tocPanelBody"></div>
+<a class="toc-top" href="#top" id="tocTop">回到顶部</a>
+</aside>
+<script>
+(function(){
+  var fab=document.getElementById('tocFab'),
+      panel=document.getElementById('tocPanel'),
+      scrim=document.getElementById('tocScrim'),
+      pbody=document.getElementById('tocPanelBody'),
+      sbody=document.getElementById('sidenavBody'),
+      progress=document.getElementById('progress');
+  var grid=document.querySelector('#toc .toc-grid');
+  if(grid&&pbody){ pbody.appendChild(grid.cloneNode(true)); }
+  var chLinks=[].slice.call(document.querySelectorAll('.toc-ch-link'));
+  var subLinks=[].slice.call(document.querySelectorAll('.toc-sub'));
+  /* querySelectorAll 已按文档顺序返回，h2/h3 混在一起仍是有序的 */
+  var heads=[].slice.call(document.querySelectorAll('h2[id],h3[id]'));
+
+  /* 目录角标由 add_toc.py 在 Python 侧合成（含图/表计数，且允许 --meta 覆盖），
+     这里不再自动改写，避免把人工写好的角标（如「22 张引用图」）冲掉。 */
+
+  function open(){
+    panel.classList.add('show'); scrim.classList.add('show');
+    panel.removeAttribute('inert'); panel.setAttribute('aria-hidden','false');
+    fab.setAttribute('aria-expanded','true');
+    var f=panel.querySelector('button,a'); if(f){ f.focus(); }
+  }
+  function shut(refocus){
+    if(!panel.classList.contains('show')) return;
+    panel.classList.remove('show'); scrim.classList.remove('show');
+    panel.setAttribute('inert',''); panel.setAttribute('aria-hidden','true');
+    fab.setAttribute('aria-expanded','false');
+    /* 只在「目录」按钮真的可见时才还焦点（≥1000px 时它是 display:none，
+       对不可见元素 focus() 无效，会把焦点丢给 body）。 */
+    if(refocus!==false && window.getComputedStyle(fab).display!=='none'){ fab.focus(); }
+  }
+  if(fab){ fab.addEventListener('click',open); }
+  document.getElementById('tocClose').addEventListener('click',function(){ shut(); });
+  scrim.addEventListener('click',function(){ shut(); });
+  document.getElementById('tocTop').addEventListener('click',function(){ shut(false); });
+  /* 目录项内部是 <a><span class="n">01</span>…</a>，点 span 时 e.target 不是 A，
+     必须用 closest('a') 向上找，否则点章号不关面板。 */
+  pbody.addEventListener('click',function(e){
+    var a=e.target.closest?e.target.closest('a'):(function(n){while(n&&n!==pbody){if(n.tagName==='A')return n;n=n.parentNode;}return null;})(e.target);
+    if(a){ shut(false); }
+  });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ shut(); } });
+
+  var lastCh, lastSub;
+  function update(){
+    var y=window.scrollY||document.documentElement.scrollTop;
+    var max=document.documentElement.scrollHeight-window.innerHeight;
+    progress.style.width=(max>0?(y/max*100):0)+'%';
+    var curCh=null, curSub=null;
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=130){
+        if(heads[i].tagName==='H2'){ curCh=heads[i].id; curSub=null; }
+        else { curSub=heads[i].id; }
+      }
+    }
+    if(!curCh&&heads.length){ curCh=heads[0].id; }   /* 未滚到第一章时也要有高亮 */
+    if(curCh===lastCh&&curSub===lastSub){ return; }
+    lastCh=curCh; lastSub=curSub;
+    var act=null, j, on;
+    for(j=0;j<chLinks.length;j++){
+      on=chLinks[j].getAttribute('href')==='#'+curCh;
+      chLinks[j].classList.toggle('active',on);
+      if(on&&!act){ act=chLinks[j]; }
+    }
+    for(j=0;j<subLinks.length;j++){
+      on=subLinks[j].getAttribute('href')==='#'+curSub;
+      subLinks[j].classList.toggle('active',on);
+      if(on&&!act){ act=subLinks[j]; }
+    }
+    /* 让侧栏里被高亮的那一条始终留在可视区内（已可见时不动，避免抢滚动） */
+    if(act&&sbody){
+      var r=act.getBoundingClientRect(), b=sbody.getBoundingClientRect();
+      if(r.top<b.top){ sbody.scrollTop-=(b.top-r.top)+14; }
+      else if(r.bottom>b.bottom){ sbody.scrollTop+=(r.bottom-b.bottom)+14; }
+    }
+  }
+  /* rAF 节流 + 超时兜底：rAF 一旦被节流/挂起（后台标签页、预览面板、省电模式），
+     ticking 会永远停在 true，之后所有 scroll 事件被吞掉 —— 进度条与高亮永久冻结。
+     用一个定时器保证 update() 仍会执行且 ticking 能被复位。 */
+  var ticking=false, fbTimer=0;
+  window.addEventListener('scroll',function(){
+    if(ticking) return;
+    ticking=true;
+    window.requestAnimationFrame(function(){ clearTimeout(fbTimer); update(); ticking=false; });
+    clearTimeout(fbTimer);
+    fbTimer=setTimeout(function(){ ticking=false; update(); },150);
+  },{passive:true});
+  window.addEventListener('resize',function(){ lastCh=undefined; lastSub=undefined; update(); });
+  update();
+})();
+</script>
+<!--TOC-WIDGET-END-->
+</body>
+</html>

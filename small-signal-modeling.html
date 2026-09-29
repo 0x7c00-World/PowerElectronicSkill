@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小信号建模 · 在电力电子中的运用</title>
+<style>
+:root{
+  --page:#f6f6f4; --card:#ffffff; --text:#1b1b19; --muted:#5f5e5a; --faint:#8a8983;
+  --border:rgba(0,0,0,.12); --border-strong:rgba(0,0,0,.22);
+  --accent:#185FA5; --accent-soft:#E6F1FB;
+  --t1-fill:#F1EFE8; --t1-stroke:#888780; --t1-title:#2C2C2A; --t1-sub:#5F5E5A;
+  --t2-fill:#E6F1FB; --t2-stroke:#185FA5; --t2-title:#0C447C; --t2-sub:#185FA5;
+  --warn:#993C1D; --warn-soft:#FAECE7; --ok:#3B6D11; --ok-soft:#EAF3DE;
+  --code:#f0efeb; --shadow:rgba(0,0,0,.13);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --page:#151514; --card:#1f1f1e; --text:#eceae6; --muted:#a3a29d; --faint:#7d7c77;
+    --border:rgba(255,255,255,.14); --border-strong:rgba(255,255,255,.26);
+    --accent:#85B7EB; --accent-soft:#0C447C;
+    --t1-fill:#2C2C2A; --t1-stroke:#B4B2A9; --t1-title:#D3D1C7; --t1-sub:#B4B2A9;
+    --t2-fill:#0C447C; --t2-stroke:#85B7EB; --t2-title:#B5D4F4; --t2-sub:#85B7EB;
+    --warn:#F0997B; --warn-soft:#4A1B0C; --ok:#97C459; --ok-soft:#173404;
+    --code:#2a2a28; --shadow:rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; padding:36px 24px 80px;
+  background:var(--page); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15px; line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.crumb{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.crumb a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;}
+.crumb a:hover{border-bottom-color:var(--accent);}
+.crumb span{color:var(--faint);margin:0 7px;}
+h1{font-size:27px;font-weight:600;letter-spacing:-.3px;margin:0 0 10px;line-height:1.35;}
+.sub{color:var(--muted);font-size:14.5px;margin:0 0 16px;}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
+.tag{font-size:12px;font-weight:500;padding:4px 11px;border-radius:6px;background:var(--accent-soft);color:var(--accent);}
+h2{font-size:19px;font-weight:600;margin:56px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+h2 .num{color:var(--faint);font-weight:500;margin-right:9px;font-variant-numeric:tabular-nums;}
+h3{font-size:15.5px;font-weight:600;margin:32px 0 10px;}
+h4{font-size:14.5px;font-weight:600;margin:24px 0 8px;color:var(--text);}
+p{margin:0 0 14px;}
+ul,ol{padding-left:22px;margin:0 0 14px;}
+li{margin-bottom:7px;}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;
+     background:var(--code);padding:2px 6px;border-radius:4px;}
+.callout{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);
+  border-radius:10px;padding:16px 20px;margin:22px 0;}
+.callout p:last-child{margin-bottom:0;}
+.callout strong{color:var(--accent);}
+.note{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:18px 0;font-size:14px;}
+.note.warn{border-left:3px solid var(--warn);}
+.note.warn b{color:var(--warn);}
+.note.ok{border-left:3px solid var(--ok);}
+.note.ok b{color:var(--ok);}
+.note p:last-child{margin-bottom:0;}
+.chain{display:flex;flex-direction:column;margin:18px 0 6px;}
+.step{display:flex;gap:14px;padding:15px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+.step .b{font-size:14.5px;font-weight:600;margin-bottom:3px;}
+.step .d{font-size:13.5px;color:var(--muted);line-height:1.65;}
+.eq{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:14px 20px;margin:15px 0;
+  font-family:"Cambria Math",Cambria,Georgia,"Times New Roman",serif;font-size:15.5px;line-height:2.1;
+  overflow-x:auto;}
+.eq i{font-style:italic;}
+.eq .lbl{font-family:inherit;font-size:12.5px;color:var(--faint);font-style:normal;}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;}
+th{text-align:left;font-weight:600;font-size:12.5px;letter-spacing:.3px;color:var(--muted);
+   padding:10px 14px;border-bottom:1px solid var(--border-strong);}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card table{margin:0;}
+figure{margin:24px 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 14px 12px;}
+figure svg{display:block;width:100%;height:auto;}
+figcaption{font-size:12.5px;color:var(--faint);margin-top:10px;padding:0 6px;line-height:1.65;}
+details{border:1px solid var(--border);border-radius:10px;padding:0 16px;margin-bottom:10px;background:var(--card);}
+details[open]{padding-bottom:14px;}
+summary{cursor:pointer;font-size:14px;font-weight:600;padding:13px 0;list-style:none;}
+summary::-webkit-details-marker{display:none;}
+summary::before{content:"▸";display:inline-block;margin-right:9px;color:var(--accent);}
+details[open] summary::before{content:"▾";}
+details p{margin:8px 0 0;font-size:14px;color:var(--muted);}
+.formula-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:12px;margin:18px 0;}
+.fc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.fc .h{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:9px;}
+.fc .e{font-family:"Cambria Math",Cambria,Georgia,serif;font-size:14.5px;line-height:2;overflow-x:auto;}
+.reading{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0;}
+.rc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.rc .h{font-size:13.5px;font-weight:600;margin-bottom:6px;}
+.rc .d{font-size:13px;color:var(--muted);line-height:1.6;}
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);}
+footer a{color:var(--accent);text-decoration:none;}
+footer a:hover{border-bottom:1px solid var(--accent);}
+@media (max-width:620px){
+  body{padding:22px 16px 60px;}
+  h1{font-size:21px;}
+  table{font-size:13px;}
+  th,td{padding:9px 10px;}
+  .eq{font-size:14px;padding:12px 14px;}
+  .fc .e{font-size:13px;}
+}
+
+/*TOC-CSS-BEGIN*/
+h2[id],h3[id]{scroll-margin-top:26px;}
+.progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:60;}
+
+/* ===== 左侧固定目录 + 右侧独立滚动正文 ===== */
+.shell{max-width:1300px;margin:0 auto;}
+.main{min-width:0;}
+.sidenav{display:none;}
+.sidenav-head{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;padding:15px 18px 12px;border-bottom:1px solid var(--border);}
+.sidenav-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:13px 12px 14px 16px;scrollbar-width:thin;}
+.sidenav-body::-webkit-scrollbar{width:7px;}
+.sidenav-body::-webkit-scrollbar-track{background:transparent;}
+.sidenav-body::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px;}
+.toc-title{font-size:14.5px;font-weight:600;}
+.toc-meta{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;}
+.toc-grid{column-count:1;}
+.toc-ch{break-inside:avoid;margin-bottom:13px;}
+.toc-ch:last-child{margin-bottom:0;}
+.toc-ch-link{display:block;font-size:13.5px;font-weight:600;color:var(--text);text-decoration:none;padding:3px 7px;border-radius:6px;line-height:1.5;transition:color .15s,background .15s;}
+.toc-ch-link .n{display:inline-block;min-width:23px;font-size:11.5px;font-weight:600;color:var(--faint);font-variant-numeric:tabular-nums;}
+.toc-ch-link:hover,.toc-ch-link.active{color:var(--accent);background:var(--accent-soft);}
+.toc-ch-link.active .n{color:var(--accent);}
+.toc-sub{display:block;font-size:12.5px;color:var(--muted);text-decoration:none;padding:2.5px 7px 2.5px 24px;border-radius:6px;line-height:1.45;transition:color .15s,background .15s;}
+.toc-sub:hover{color:var(--accent);background:var(--accent-soft);}
+.toc-top{flex:none;display:block;padding:11px 18px;border-top:1px solid var(--border);font-size:13px;color:var(--accent);text-decoration:none;}
+.toc-top:hover{background:var(--accent-soft);}
+
+@media (min-width:1000px){
+  .shell{display:grid;grid-template-columns:258px minmax(0,1fr);gap:54px;align-items:start;}
+  .sidenav{display:flex;flex-direction:column;position:sticky;top:18px;max-height:calc(100vh - 36px);
+    background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+    box-shadow:0 1px 3px var(--shadow);}
+  .main .wrap{max-width:920px;margin:0;}
+  .toc-fab{display:none;}
+}
+
+/* ===== 窄屏回退：常驻悬浮按钮 + 侧滑面板 ===== */
+.toc-fab{position:fixed;right:22px;bottom:22px;z-index:70;background:var(--card);border:1px solid var(--border-strong);color:var(--muted);border-radius:22px;padding:9px 18px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s,color .15s,border-color .15s;box-shadow:0 4px 16px var(--shadow);}
+.toc-fab.show{opacity:1;pointer-events:auto;}
+.toc-fab:hover{color:var(--accent);border-color:var(--accent);}
+.toc-scrim{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.32);z-index:80;opacity:0;pointer-events:none;transition:opacity .22s;}
+.toc-scrim.show{opacity:1;pointer-events:auto;}
+.toc-panel{position:fixed;top:0;right:0;bottom:0;width:min(340px,88vw);background:var(--page);border-left:1px solid var(--border);z-index:90;transform:translateX(101%);transition:transform .26s ease;display:flex;flex-direction:column;}
+.toc-panel.show{transform:translateX(0);}
+.toc-panel-head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border);font-size:14.5px;font-weight:600;}
+.toc-close{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;font-family:inherit;padding:2px 6px;line-height:1;}
+.toc-close:hover{color:var(--accent);}
+.toc-panel-body{flex:1;overflow-y:auto;padding:16px 20px 20px;}
+.toc-panel-body .toc-grid{column-count:1;}
+.toc-panel-body .toc-ch-link{font-size:14px;}
+.toc-panel-body .toc-sub{font-size:13px;}
+@media (max-width:999px){.toc-fab{opacity:1;pointer-events:auto;}}
+
+@media print{
+  .toc-fab,.toc-scrim,.toc-panel,.progress{display:none;}
+  .shell{display:block;max-width:none;}
+  .sidenav{display:none;}
+  .main .wrap{max-width:none;}
+}
+/*TOC-CSS-END*/
+</style>
+</head>
+<body>
+<!--TOC-SHELL-BEGIN-->
+<div class="shell">
+<aside class="sidenav" id="toc" aria-label="文档目录">
+<div class="sidenav-head"><span class="toc-title">目录</span><span class="toc-meta">14 章 · 51 节 · 13 张图</span></div>
+<div class="sidenav-body" id="sidenavBody">
+<div class="toc-grid">
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch00"><span class="n">00</span>导读：这份文档怎么用</a>
+<a class="toc-sub" href="#ch00-1">与《电路与系统分析》的分工</a>
+<a class="toc-sub" href="#ch00-2">全文主线总览</a>
+<a class="toc-sub" href="#ch00-3">三种读法</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch01"><span class="n">01</span>为什么开关变换器需要专门建模</a>
+<a class="toc-sub" href="#ch01-1">1.1 两道障碍：时变与非线性</a>
+<a class="toc-sub" href="#ch01-2">1.2 模型族：同一张电路的四种用法</a>
+<a class="toc-sub" href="#ch01-3">1.3 低频假设与有效边界</a>
+<a class="toc-sub" href="#ch01-4">1.4 建模产出哪四样东西</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch02"><span class="n">02</span>分段线性分析：逐区间写方程</a>
+<a class="toc-sub" href="#ch02-1">2.1 状态变量的选取</a>
+<a class="toc-sub" href="#ch02-2">2.2 Buck：两个区间分开写</a>
+<a class="toc-sub" href="#ch02-3">2.3 区间矩阵形式</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch03"><span class="n">03</span>状态空间平均法：把开关抹平</a>
+<a class="toc-sub" href="#ch03-1">3.1 加权平均：推导与波形理解</a>
+<a class="toc-sub" href="#ch03-2">3.2 一般公式</a>
+<a class="toc-sub" href="#ch03-3">3.3 直流模型：变比自然长出</a>
+<a class="toc-sub" href="#ch03-4">3.4 电路视角：弧平均</a>
+<a class="toc-sub" href="#ch03-5">3.5 SSA 什么时候失效</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch04"><span class="n">04</span>小信号线性化：在工作点拉直</a>
+<a class="toc-sub" href="#ch04-1">4.1 扰动与切线</a>
+<a class="toc-sub" href="#ch04-2">4.2 分离与丢弃：直流与小信号</a>
+<a class="toc-sub" href="#ch04-3">4.3 小信号状态空间形式</a>
+<a class="toc-sub" href="#ch04-4">4.4 传递函数的一般配方</a>
+<a class="toc-sub" href="#ch04-5">4.5 "小信号"要多小</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch05"><span class="n">05</span>PWM Switch 模型：开关即模块</a>
+<a class="toc-sub" href="#ch05-1">5.1 为什么把开关模块化</a>
+<a class="toc-sub" href="#ch05-2">5.2 三端与两种接法</a>
+<a class="toc-sub" href="#ch05-3">5.3 大信号端口特性</a>
+<a class="toc-sub" href="#ch05-4">5.4 线性化：小信号等效子电路</a>
+<a class="toc-sub" href="#ch05-5">5.5 给 Buck 直接画小信号电路</a>
+<a class="toc-sub" href="#ch05-6">5.6 建模方法族对比</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch06"><span class="n">06</span>传递函数族：Gvd、Gvg、Zout</a>
+<a class="toc-sub" href="#ch06-1">6.1 Gvd：控制到输出</a>
+<a class="toc-sub" href="#ch06-2">6.2 Gvg：线到输出</a>
+<a class="toc-sub" href="#ch06-3">6.3 Zout：输出阻抗</a>
+<a class="toc-sub" href="#ch06-4">6.4 三条传函的 Bode 读法</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch07"><span class="n">07</span>完整算例：24 V → 48 V Boost</a>
+<a class="toc-sub" href="#ch07-1">7.1 规格与直流工作点</a>
+<a class="toc-sub" href="#ch07-2">7.2 分段 → 平均 → 线性化</a>
+<a class="toc-sub" href="#ch07-3">7.3 解出 Gvd：RHP 零点的诞生</a>
+<a class="toc-sub" href="#ch07-4">7.4 代入数值</a>
+<a class="toc-sub" href="#ch07-5">7.5 与开关仿真和实测对拍</a>
+<a class="toc-sub" href="#ch07-6">7.6 本例的设计结论</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch08"><span class="n">08</span>电流模式建模：另一条路</a>
+<a class="toc-sub" href="#ch08-1">8.1 为什么要电流环</a>
+<a class="toc-sub" href="#ch08-2">8.2 采样与次谐波振荡</a>
+<a class="toc-sub" href="#ch08-3">8.3 斜率补偿的定量设计</a>
+<a class="toc-sub" href="#ch08-4">8.4 简化模型：双重极点消失</a>
+<a class="toc-sub" href="#ch08-5">8.5 简化模型的边界</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch09"><span class="n">09</span>DCM 与模型边界</a>
+<a class="toc-sub" href="#ch09-1">9.1 DCM 破坏了哪条假设</a>
+<a class="toc-sub" href="#ch09-2">9.2 开关电感：Vorperian 的处理</a>
+<a class="toc-sub" href="#ch09-3">9.3 使用 DCM 模型的三条经验</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch10"><span class="n">10</span>十个常见误区</a>
+
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch11"><span class="n">11</span>公式速查卡</a>
+<a class="toc-sub" href="#ch11-1">平均化与线性化</a>
+<a class="toc-sub" href="#ch11-2">PWM switch 与端口方程</a>
+<a class="toc-sub" href="#ch11-3">传递函数（Buck / Boost）</a>
+<a class="toc-sub" href="#ch11-4">电流模式与 DCM</a>
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch12"><span class="n">12</span>自测：检查你是否真的掌握了</a>
+
+</div>
+<div class="toc-ch">
+<a class="toc-ch-link" href="#ch13"><span class="n">13</span>参考资料</a>
+<a class="toc-sub" href="#ch13-1">教科书</a>
+<a class="toc-sub" href="#ch13-2">经典论文（原始出处）</a>
+<a class="toc-sub" href="#ch13-3">应用笔记与仿真工具</a>
+</div>
+</div>
+</div>
+<a class="toc-top" href="#top">回到顶部</a>
+</aside>
+<main class="main">
+<!--TOC-SHELL-END-->
+<div class="wrap" id="top">
+
+<div class="crumb"><a href="index.html">电力电子技能体系</a><span>/</span>建模层 · 小信号建模</div>
+
+<h1>小信号建模：在电力电子里怎么用</h1>
+<p class="sub">状态空间平均法 · PWM switch —— 从一张开关电路图，到一套可以设计环路的传递函数</p>
+<div class="tagrow">
+  <span class="tag">建模层 03</span>
+  <span class="tag">先修：电路与系统分析（基础层 01）</span>
+  <span class="tag">产出：Gvd · Gvg · Zout</span>
+  <span class="tag">含完整算例</span>
+</div>
+
+<div class="callout">
+  <p><strong>这一层解决的是"开关电路凭什么能用线性理论设计"这个根本问题。</strong>变换器里每一个非线性、时变的开关，都在拒绝拉普拉斯、拒绝 Bode、拒绝一切你熟悉的线性工具。小信号建模的全部工作，就是先把这个"拒绝"变成"接受"：先平均、再线性化，或者用 PWM switch 模型把开关直接换成一个线性子电路。</p>
+  <p>《电路与系统分析》1.4 节曾用五步推导把这条流水线走了一遍；这份文档是这条流水线本身的施工图：状态空间平均法的完整推导与失效边界、小信号线性化的严格操作、Vorperian 的 PWM switch 模型、传递函数族（G<sub>vd</sub> / G<sub>vg</sub> / Z<sub>out</sub>）、电流模式建模、DCM 专题，最后用一个 Boost 算例把所有东西走通并核算每一个数字。</p>
+</div>
+
+<h2 id="ch00"><span class="num">00</span>导读：这份文档怎么用</h2>
+
+<h3 id="ch00-1">与《电路与系统分析》的分工</h3>
+<p>基础层文档把"四步套路"（分段线性 → 加权平均 → 线性化 → s 域求解）当作一条翻译流水线介绍了一遍，重点是<strong>让你知道有这条路</strong>；本文是这条路本身的施工图，重点是<strong>让你能独立走完并知道哪里会塌</strong>。具体分工：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:30%">问题</th><th style="width:34%">在哪份文档回答</th><th>本文对应章节</th></tr></thead>
+<tbody>
+<tr><td>为什么要平均化？四步套路的骨架是什么</td><td>电路与系统分析 · 0.2 节</td><td>第 01 章（加深：模型族与边界）</td></tr>
+<tr><td>Buck 的 SSA 五步推导</td><td>电路与系统分析 · 1.4 节</td><td>第 02、03、04 章（同样五步，但给出一般公式与失效条件）</td></tr>
+<tr><td>PWM switch 模型是什么、怎么用</td><td><b>本文独有</b></td><td>第 05 章</td></tr>
+<tr><td>Gvg、Zout 怎么推、怎么用</td><td>电路与系统分析只给了定义</td><td>第 06 章（完整推导）</td></tr>
+<tr><td>Boost 的 RHP 零点从哪来</td><td>电路与系统分析 · 2.5 节（结论）</td><td>第 07 章（从状态方程一步步推出）</td></tr>
+<tr><td>电流模式怎么建模、斜率补偿怎么算</td><td><b>本文独有</b></td><td>第 08 章</td></tr>
+<tr><td>补偿器设计与环路验证</td><td>电路与系统分析 · 第 3、5 章</td><td>不在本文范围（建模的下游）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch00-2">全文主线总览</h3>
+<p>下面这张图是全文骨架。中间一列是四步操作（每步括注对应章节），右侧是这一步的产物；左侧绿色虚线框是 <strong>PWM switch 这条捷径</strong>——它把①②③三步打包成一个查表即用的子电路，直接跳到④的门口。这正是它受工程界欢迎的原因。</p>
+
+<figure>
+<svg viewBox="0 0 660 452" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>小信号建模主线总览：从开关电路到传递函数族</title>
+<desc>开关电路依次经过分段线性、加权平均、小信号线性化、拉普拉斯求解四个阶段得到传递函数族，每步右侧标注产物；左侧捷径框表示 PWM switch 模型把前三个阶段打包为一条捷径，直接给出开关网络的小信号等效子电路。</desc>
+
+<text x="115" y="28" font-size="11.5" text-anchor="middle" fill="var(--faint)">捷径</text>
+<text x="400" y="28" font-size="11.5" text-anchor="middle" fill="var(--faint)">处理阶段</text>
+<text x="560" y="28" font-size="11.5" fill="var(--faint)">产物</text>
+
+<rect x="250" y="46" width="300" height="52" rx="9" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.5"/>
+<text x="400" y="66" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="var(--t1-title)">开关变换器电路</text>
+<text x="400" y="84" font-size="12" text-anchor="middle" dominant-baseline="central" fill="var(--t1-sub)">非线性 · 时变 · 线性理论拒收</text>
+
+<rect x="250" y="136" width="300" height="52" rx="9" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.5"/>
+<text x="400" y="156" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="var(--t2-title)">① 分段线性（KVL / KCL）</text>
+<text x="400" y="174" font-size="12" text-anchor="middle" dominant-baseline="central" fill="var(--t2-sub)">每个开关子区间一套线性方程 · 第 02 章</text>
+
+<rect x="250" y="222" width="300" height="52" rx="9" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.5"/>
+<text x="400" y="242" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="var(--t2-title)">② 加权平均（SSA / 弧平均）</text>
+<text x="400" y="260" font-size="12" text-anchor="middle" dominant-baseline="central" fill="var(--t2-sub)">开关消失，d 成为连续变量 · 第 03 章</text>
+
+<rect x="250" y="308" width="300" height="52" rx="9" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.5"/>
+<text x="400" y="328" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="var(--t2-title)">③ 小信号线性化</text>
+<text x="400" y="346" font-size="12" text-anchor="middle" dominant-baseline="central" fill="var(--t2-sub)">d = D + d̂，丢二阶项 → LTI · 第 04 章</text>
+
+<rect x="250" y="394" width="300" height="52" rx="9" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.5"/>
+<text x="400" y="414" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="var(--t2-title)">④ 拉普拉斯 / 电路求解</text>
+<text x="400" y="432" font-size="12" text-anchor="middle" dominant-baseline="central" fill="var(--t2-sub)">传递函数族 → 交给环路设计 · 第 06、07 章</text>
+
+<line x1="400" y1="98" x2="400" y2="132" stroke="var(--border-strong)" stroke-width="1.5"/>
+<line x1="400" y1="188" x2="400" y2="218" stroke="var(--border-strong)" stroke-width="1.5"/>
+<line x1="400" y1="274" x2="400" y2="304" stroke="var(--border-strong)" stroke-width="1.5"/>
+<line x1="400" y1="360" x2="400" y2="390" stroke="var(--border-strong)" stroke-width="1.5"/>
+<polygon points="400,136 396,127 404,127" fill="var(--border-strong)"/>
+<polygon points="400,222 396,213 404,213" fill="var(--border-strong)"/>
+<polygon points="400,308 396,299 404,299" fill="var(--border-strong)"/>
+<polygon points="400,394 396,385 404,385" fill="var(--border-strong)"/>
+
+<text x="560" y="162" font-size="12" fill="var(--muted)">子区间状态方程</text>
+<text x="560" y="248" font-size="12" fill="var(--muted)">平均模型（含直流）</text>
+<text x="560" y="334" font-size="12" fill="var(--muted)">小信号状态空间</text>
+<text x="560" y="420" font-size="12" fill="var(--muted)">Gvd · Gvg · Zout</text>
+
+<rect x="40" y="146" width="150" height="184" rx="9" fill="var(--ok-soft)" stroke="var(--ok)" stroke-width="0.8" stroke-dasharray="4 3"/>
+<text x="115" y="180" font-size="12.5" font-weight="600" text-anchor="middle" fill="var(--ok)">捷径：PWM switch</text>
+<text x="115" y="206" font-size="11" text-anchor="middle" fill="var(--ok)">把 ①②③ 打包：</text>
+<text x="115" y="226" font-size="11" text-anchor="middle" fill="var(--ok)">开关 → 查表子电路</text>
+<text x="115" y="246" font-size="11" text-anchor="middle" fill="var(--ok)">不写状态方程，</text>
+<text x="115" y="264" font-size="11" text-anchor="middle" fill="var(--ok)">画完电路直接读传函</text>
+<text x="115" y="296" font-size="11.5" font-weight="600" text-anchor="middle" fill="var(--ok)">第 05 章</text>
+
+<line x1="192" y1="238" x2="238" y2="322" stroke="var(--ok)" stroke-width="1.2" stroke-dasharray="5 4"/>
+<polygon points="245,334 231,326 238,318" fill="var(--ok)"/>
+</svg>
+<figcaption>全文骨架。第 01 章讲清楚为什么要走这条路以及路的边界；第 02–04 章把三步正路逐站走透（每步产物见右侧）；第 05 章讲 PWM switch 这条捷径，绕过①②③直接给出可求解的线性电路；第 06、07 章产出并核算传递函数族；第 08、09 章处理电流模式与 DCM 两个特殊战场。环路补偿、Bode 整形属于下游，见《电路与系统分析》第 3、5 章。</figcaption>
+</figure>
+
+<h3 id="ch00-3">三种读法</h3>
+<div class="reading">
+  <div class="rc">
+    <div class="h">第一次学建模</div>
+    <div class="d">按顺序读 01 → 07 章。核心检验标准：能不能合上文档，独立把 Boost 的两个区间方程写出来并推到 G<sub>vd</sub>。</div>
+  </div>
+  <div class="rc">
+    <div class="h">要建一个具体模型</div>
+    <div class="d">直接看第 05 章（PWM switch 查表法）和第 07 章（算例对照）。手推太慢时，PWM switch 是工程上的正解。</div>
+  </div>
+  <div class="rc">
+    <div class="h">模型和实测对不上</div>
+    <div class="d">看 1.3（有效边界）、3.5（SSA 失效）、第 08 章（电流模式采样效应）、第 09 章（DCM）。九成偏差出在这四处。</div>
+  </div>
+</div>
+
+<h2 id="ch01"><span class="num">01</span>为什么开关变换器需要专门建模</h2>
+
+<h3 id="ch01-1">1.1 两道障碍：时变与非线性</h3>
+<p>把一台 Buck 的功率级单独拿出来，它拒绝一切经典线性工具的理由有两条，而且相互独立：</p>
+<ul>
+<li><strong>非线性</strong>：开关只有两个状态，电压-电流关系不是过原点的直线。叠加定理、戴维南等效、传递函数的"输入-输出比例"概念在这里全部失效。</li>
+<li><strong>时变</strong>：拓扑本身随时间切换。t 时刻你写下的电路方程，到 DT 时刻作废——系统是周期时变的，连"极点"这个概念都没有严格定义。</li>
+</ul>
+<p>对付这两条障碍的策略也对应分两步：<strong>用"分区间"暂时消灭非线性（第 02 章），用"平均"消灭时变（第 03 章），用"小信号线性化"对付平均之后残留的乘积项（第 04 章）</strong>。顺序不能换：先有线性时不变，才有资格谈传递函数。</p>
+<div class="note warn">
+  <p><b>常见的概念偷换</b>："电感电容是线性元件，所以开关电路是线性的"。元件是线性的，<b>拓扑不是</b>。每个区间内方程是线性的，但区间之间方程不连续——整体仍是时变非线性系统。平均化不是数学技巧，它改变的是你研究的对象：从"瞬时波形"换成"低频包络"。</p>
+</div>
+
+<h3 id="ch01-2">1.2 模型族：同一张电路的四种用法</h3>
+<p>工程上至少并存四种模型，各管各的事。混淆它们是"模型不准"争论的真正来源——不是模型错了，是用错了场合。</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:22%">模型</th><th style="width:30%">数学形态</th><th style="width:24%">用来回答什么</th><th>典型工具</th></tr></thead>
+<tbody>
+<tr><td>开关级（大信号）模型</td><td>逐区间分段线性方程 + 理想/实际开关</td><td>纹波、损耗、di/dt、dv/dt、EMI</td><td>LTspice、PLECS、PSIM（瞬态）</td></tr>
+<tr><td>平均模型（大信号）</td><td>连续时变的非线性状态方程，含 d·x 乘积</td><td>启动、限流、大信号暂态，快于开关仿真</td><td>SIMPLIS 平均模型、Matlab ODE</td></tr>
+<tr><td>直流模型（DC）</td><td>平均模型令导数为 0</td><td>变比、元件电压电流应力、参数选取</td><td>手算（本文 3.3 节）</td></tr>
+<tr><td>小信号模型（AC）</td><td>线性时不变：状态方程或等效电路</td><td>环路设计、带宽、音频隔离、输出阻抗</td><td>手推 + Python/Matlab Bode，仿真交叉验证</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note">
+  <p><b>一句话分清四种模型</b>：直流模型回答"稳下来是多少"，小信号模型回答"扰动怎么传播"，平均模型回答"从启动爬到稳态的全过程"，开关模型回答"每一个开关瞬间发生了什么"。<b>本文的主战场是第四项（小信号模型），但它只能从第二、三项的推导过程里长出来</b>——直接背传函公式的人，换个拓扑就不会了。</p>
+</div>
+
+<h4>四个模型怎么互相转换：一条流水线、三个加工动作</h4>
+<p>四种模型不是四件并列的工具，而是<strong>同一条流水线上依次加工的四站</strong>——站与站之间各做一次明确的操作。把它画出来，"现在手里是什么模型、做一步什么、会得到哪个"就不再靠感觉：</p>
+
+<figure>
+<svg viewBox="0 0 660 512" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>四种模型的转换流程：平均 → 直流 → 小信号</title>
+<desc>开关级模型经加权平均得到平均模型；平均模型令导数为零得到直流模型；在直流工作点处对平均模型加扰动并线性化得到小信号模型。三个箭头分别丢弃开关纹波、动态与大信号行为，箭头不可逆。</desc>
+
+<rect x="140" y="40" width="250" height="56" rx="9" fill="var(--t1-fill)" stroke="var(--t1-stroke)" stroke-width="0.5"/>
+<text x="265" y="60" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="var(--t1-title)">开关级模型（大信号）</text>
+<text x="265" y="80" font-size="11.5" text-anchor="middle" dominant-baseline="central" fill="var(--t1-sub)">逐区间分段线性 + 实际开关波形</text>
+
+<rect x="140" y="172" width="250" height="56" rx="9" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.5"/>
+<text x="265" y="192" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="var(--t2-title)">平均模型（大信号 · 非线性）</text>
+<text x="265" y="212" font-size="11.5" text-anchor="middle" dominant-baseline="central" fill="var(--t2-sub)">连续方程，含 d·x 乘积项</text>
+
+<rect x="140" y="304" width="250" height="56" rx="9" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.5"/>
+<text x="265" y="324" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="var(--t2-title)">直流模型（DC 工作点）</text>
+<text x="265" y="344" font-size="11.5" text-anchor="middle" dominant-baseline="central" fill="var(--t2-sub)">变比、元件应力 —— 表见 3.3 节</text>
+
+<rect x="140" y="436" width="250" height="56" rx="9" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.5"/>
+<text x="265" y="456" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="var(--t2-title)">小信号模型（AC · 线性时不变）</text>
+<text x="265" y="476" font-size="11.5" text-anchor="middle" dominant-baseline="central" fill="var(--t2-sub)">拉普拉斯 → 传函族（第 06、07 章）</text>
+
+<line x1="200" y1="96" x2="200" y2="163" stroke="var(--accent)" stroke-width="1.5"/>
+<polygon points="200,171 196,163 204,163" fill="var(--accent)"/>
+<text x="215" y="118" font-size="12" fill="var(--accent)">① 对一个开关周期做加权平均（第 03 章）</text>
+<text x="215" y="136" font-size="11.5" fill="var(--muted)">伏秒 / 电荷平均 · 抹掉开关纹波与开关沿</text>
+
+<line x1="200" y1="228" x2="200" y2="295" stroke="var(--accent)" stroke-width="1.5"/>
+<polygon points="200,303 196,295 204,295" fill="var(--accent)"/>
+<text x="215" y="250" font-size="12" fill="var(--accent)">② 令导数为零，解直流代数方程（3.3 节）</text>
+<text x="215" y="268" font-size="11.5" fill="var(--muted)">得到静态工作点 D、X 与元件应力</text>
+
+<line x1="200" y1="360" x2="200" y2="427" stroke="var(--accent)" stroke-width="1.5"/>
+<polygon points="200,435 196,427 204,427" fill="var(--accent)"/>
+<text x="215" y="382" font-size="12" fill="var(--accent)">③ 在 (D, X) 处加扰动、泰勒展开、丢二阶项（第 04 章）</text>
+<text x="215" y="400" font-size="11.5" fill="var(--muted)">X 取自上一步的直流解 · 得到线性时不变模型</text>
+
+<text x="128" y="131" font-size="11.5" text-anchor="end" fill="var(--faint)">丢开关纹波</text>
+<text x="128" y="263" font-size="11.5" text-anchor="end" fill="var(--faint)">丢动态</text>
+<text x="128" y="395" font-size="11.5" text-anchor="end" fill="var(--faint)">丢大信号行为</text>
+</svg>
+<figcaption>四模型转换流程。三个箭头就是三次信息丢弃：平均丢掉开关纹波，令导数为零丢掉动态，线性化丢掉大信号行为。<b>箭头不可逆</b>——小信号模型变不回开关模型，开关沿的信息在第一步就被抹掉了；需要纹波、损耗与开关瞬态时，只能回到第一站重新仿真。</figcaption>
+</figure>
+
+<div class="note">
+  <p><b>注意第三个箭头是"双输入"</b>：线性化的系数（Â、B̂₂）取自平均模型，而展开的落点（D、X）取自直流模型——这就是 3.3 节的表格必须先于 4.2 节的扰动展开出现的顺序原因。落到工程操作上：先求一次直流解（手算或仿真稳态），再围绕它线性化，两步缺一不可。</p>
+</div>
+
+<h3 id="ch01-3">1.3 低频假设与有效边界</h3>
+<p>平均化不是免费的。它用"只看低频"换掉了非线性时变，所以平均模型有明确的有效期：</p>
+<div class="eq">
+<i>f</i><sub>sw</sub> ≫ max(<i>f</i><sub>0</sub>, <i>f</i><sub>c</sub>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;工程判据：至少 10 倍以上&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">f<sub>0</sub> 为 LC 谐振频率，f<sub>c</sub> 为环路带宽</span>
+</div>
+<p>物理图像：平均的本质是用一个周期内的平均值代替瞬时值。只有当状态变量（电感电流、电容电压）在一个开关周期内几乎不变时，这个代替才成立——而状态变量变化的快慢正是由 <i>f</i><sub>0</sub> 决定的。《电路与系统分析》第 6 章的算例里 <i>f</i><sub>sw</sub>/<i>f</i><sub>0</sub> = 41 倍，非常宽裕。</p>
+
+<h4>为什么偏偏是 f<sub>0</sub>、f<sub>c</sub>、f<sub>sw</sub>/2 这三个频率在卡边界</h4>
+<p>判据里的三个频率各有各的物理来源，值得逐个说透：</p>
+<ul>
+<li><strong>为什么要求 f<sub>sw</sub> ≫ f<sub>0</sub>（状态方程这头）</strong>：状态变量变化的快慢由 LC 决定——若开关周期与 LC 时间常数同量级，电感电流、电容电压在一个周期内已变化可观的比例，此时"一个周期用一个均值代替"就丢失了周期内的重要信息：平均方程 ⟨ẋ⟩ = f(⟨x⟩) 不再近似成立，因为非线性关系 f 在周期内已经"转过弯"了。f<sub>sw</sub> 比 f<sub>0</sub> 高得越多，周期内状态越接近冻结、平均误差越小——误差随 f<sub>sw</sub>/f<sub>0</sub> 快速收敛，但收敛速度随拓扑与调制方式而异，<b>没有一条可以背的统一解析误差律</b>。"10 倍以上"是工程经验值：到这个量级，平均误差已远小于 ESR、DCR、寄生等其它建模不确定度，不再是主要矛盾。</li>
+<li><strong>为什么还要求 f<sub>sw</sub> ≫ f<sub>c</sub>（输入这头）</strong>：平均化时隐含"区间内 d、v<sub>g</sub> 视为常数"。环路的补偿器输出正是 d——如果环路带宽逼近开关频率，意味着 d 每个周期都在大幅移动，"常数"假设破产，平均模型描述的就不再是真实发生的电路。所以环路带宽是被平均化合法性反向约束的：先有 f<sub>sw</sub> ≫ f<sub>c</sub>，平均模型才描述得了这个环路。</li>
+<li><strong>f<sub>sw</sub>/2 为什么被反复强调（频域这头）</strong>：先澄清一点——f<sub>sw</sub>/2 <b>不是</b>平均模型"突然失效"的物理开关。平均模型的误差随 f/f<sub>sw</sub> 单调增大，本来就不该用到接近开关频率的地方，不存在"f<sub>sw</sub>/2 之前全对、之后全错"的硬截止。f<sub>sw</sub>/2 真正特殊，是因为凡是<strong>"每个开关周期采样一次"</strong>的环节——峰值电流模式、数字控制——它就是奈奎斯特频率：边带混叠、次谐波、采样极点对都锚定在这里（8.5 节）。工程上把 f<sub>sw</sub>/2 当作平均模型的可信边界执行，但心里要分得清这条线的两层机理：连续时间侧的误差累积，与采样侧的频率折叠。</li>
+</ul>
+<div class="note">
+  <p><b>一句话总结三个条件</b>：f<sub>0</sub> 管"状态变量在周期内冻得住"，f<sub>c</sub> 管"输入在周期内冻得住"，f<sub>sw</sub>/2 管"采样环节的混叠线、也是平均误差累积到不可信的终点"。<b>三个条件说的是同一件事的三面：平均模型只描述"比开关慢得多的世界"</b>——慢得多，才轮得到均值代表瞬时。</p>
+</div>
+<div class="card">
+<table>
+<thead><tr><th style="width:34%">边界</th><th>失效表现与对策</th></tr></thead>
+<tbody>
+<tr><td>频率 ≥ <i>f</i><sub>sw</sub>/2</td><td>平均误差累积到不可信，且模型不含开关信息。此频段行为要靠采样数据模型（第 08.5 节）或开关仿真。工程上一律不在 <i>f</i><sub>sw</sub>/2 以上用平均模型做设计——环路带宽的天然上限。</td></tr>
+<tr><td><i>f</i><sub>sw</sub> ≈ 几倍 <i>f</i><sub>0</sub></td><td>高频假设失效但开关仿真还能用：例如集成磁、高功率密度 LLC 附近的寄生谐振。改用开关描述函数或直接仿真。</td></tr>
+<tr><td>占空比每周期变化剧烈（快速限流、跳周期）</td><td>d 本身不再是"慢变量"，平均化假设（d 在周期内近似常数）破产。这属于数字控制中的非线性问题。</td></tr>
+<tr><td>DCM 且电感电流纹波 ≫ 直流分量</td><td>CCM 平均模型不适用，需要 DCM 专用模型（第 09 章）。</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch01-4">1.4 建模产出哪四样东西</h3>
+<p>把整条流水线的"交货清单"先放在这里，后面每一章都在生产其中一项。拿到这四样东西，建模工作就算完成，下游的补偿设计（《电路与系统分析》第 3、5 章）才能开工：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:20%">产物</th><th style="width:34%">回答什么问题</th><th style="width:22%">在哪一章产出</th><th>下游给谁用</th></tr></thead>
+<tbody>
+<tr><td>直流模型（变比 <i>M</i> 与元件应力）</td><td>稳态电压电流是多少、器件承受什么</td><td>03 章 · 3.3 节</td><td>功率器件与磁件选型</td></tr>
+<tr><td><i>G</i><sub>vd</sub>(<i>s</i>) 控制到输出</td><td>占空比扰动如何传到输出</td><td>05–07 章</td><td>环路补偿的主对象</td></tr>
+<tr><td><i>G</i><sub>vg</sub>(<i>s</i>) 线到输出</td><td>输入电压波动有多少漏到输出（音频隔离度）</td><td>06 章 · 6.2 节</td><td>前级纹波规格、滤波设计</td></tr>
+<tr><td><i>Z</i><sub>out</sub>(<i>s</i>) 输出阻抗</td><td>负载扰动引起多大电压跌落</td><td>06 章 · 6.3 节</td><td>负载阶跃、多相并联、Middlebrook 交互</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note">
+  <p><b>注意这四个产物都是"工作点条件量"</b>：换一个输入电压或负载，静态工作点变了，模型参数（<i>D</i>、ω<sub>0</sub>、<i>Q</i>、ω<sub>rhpz</sub>）就跟着变。一套模型只对一小片工况有效，扫工况 = 扫模型，这是建模与环路设计之间最容易被忽略的契约。</p>
+</div>
+
+<h2 id="ch02"><span class="num">02</span>分段线性分析：逐区间写方程</h2>
+<p>流水线的第一个工位。目标：把开关电路变成"每个区间一套线性状态方程"。这一步用的全是 KVL / KCL，没有任何新知识，但有三个容易做错的操作细节。</p>
+
+<h3 id="ch02-1">2.1 状态变量的选取</h3>
+<ul>
+<li><strong>独立状态变量 = 独立储能元件的个数</strong>。电感电流、电容电压是默认候选，但要检查两种退化情况：多个电容与电压源构成回路（电荷被约束，独立变量少一个）、多个电感与电流源构成割集（同理）。</li>
+<li><strong>先画拓扑再定变量</strong>。写每个区间方程前，把该区间导通器件短接、截止器件断开，画出去掉开关后的纯线性电路。多数"推不下去"卡在这一步：不画图直接凭印象写方程。</li>
+<li><strong>选"物理直观"的变量组</strong>：电感电流与电容电压天然对应能量，平均后的方程系数直接给出小信号模型的 A、B 矩阵。用回路电流/节点电压混合选变量会让后面的矩阵变得难读。</li>
+</ul>
+<div class="note">
+  <p><b>为什么用状态空间而不是网孔方程</b>：开关变换器的状态变量在区间之间是<b>连续</b>的（电感电流、电容电压不能突变——这正是 SSA 成立的前提，也是 3.5 节失效判据的来源）。用状态变量列写一阶方程组，平均时只需对各矩阵按占空比加权；网孔法的高阶方程做不到这种逐区间拼装。</p>
+</div>
+
+<h3 id="ch02-2">2.2 Buck：两个区间分开写</h3>
+<p>以 CCM Buck 为例（理想开关与二极管、理想输出电容——ESR <i>r</i><sub>C</sub> 的影响留到 6.1 一并加入，先把状态方程骨架立干净；带 ESR 后 v<sub>o</sub> ≠ v<sub>C</sub>，方程要多绕一层）。电感 <i>L</i>、负载 <i>R</i>。取状态 <b>x</b> = [<i>i</i><sub>L</sub>, <i>v</i><sub>C</sub>]<sup>T</sup>，输入 <i>v</i><sub>g</sub>，控制 <i>d</i>。</p>
+
+<figure>
+<svg viewBox="0 0 660 245" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Buck 变换器两个开关区间的线性等效电路</title>
+<desc>区间一开关导通、二极管截止，电感左端接输入电压 Vg；区间二开关截止、二极管导通，电感左端被钳位到地。两个区间内电路均为线性。</desc>
+
+<text x="45" y="26" font-size="12.5" fill="var(--t2-title)">区间 1：0 &lt; t &lt; dT（Q 导通、D 截止）</text>
+<text x="355" y="26" font-size="12.5" fill="var(--t2-title)">区间 2：dT &lt; t &lt; T（Q 截止、D 导通）</text>
+
+<line x1="55" y1="90" x2="320" y2="90" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="55" y1="170" x2="320" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="55" y1="90" x2="55" y2="170" stroke="var(--border-strong)" stroke-width="0"/>
+<line x1="80" y1="90" x2="80" y2="118" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="80" y1="138" x2="80" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="66" y1="118" x2="94" y2="118" stroke="var(--text)" stroke-width="1.4"/>
+<line x1="71" y1="128" x2="89" y2="128" stroke="var(--text)" stroke-width="1.4"/>
+<line x1="80" y1="128" x2="80" y2="138" stroke="var(--text)" stroke-width="1.4"/>
+<text x="66" y="154" font-size="11.5" text-anchor="end" fill="var(--muted)">Vg</text>
+<path d="M140 90 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0" fill="none" stroke="var(--text)" stroke-width="1.3"/>
+<text x="170" y="74" font-size="12" text-anchor="middle" fill="var(--muted)">L</text>
+<line x1="245" y1="90" x2="245" y2="122" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="233" y1="122" x2="257" y2="122" stroke="var(--text)" stroke-width="1.5"/>
+<line x1="233" y1="132" x2="257" y2="132" stroke="var(--text)" stroke-width="1.5"/>
+<line x1="245" y1="132" x2="245" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<text x="266" y="132" font-size="11.5" fill="var(--muted)">C</text>
+<line x1="295" y1="90" x2="295" y2="112" stroke="var(--border-strong)" stroke-width="1"/>
+<rect x="288" y="112" width="14" height="36" rx="2" fill="var(--card)" stroke="var(--text)" stroke-width="1"/>
+<line x1="295" y1="148" x2="295" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<text x="308" y="134" font-size="11.5" fill="var(--muted)">R</text>
+<line x1="55" y1="90" x2="80" y2="90" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="80" y1="90" x2="140" y2="90" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="200" y1="90" x2="295" y2="90" stroke="var(--border-strong)" stroke-width="1"/>
+
+<line x1="355" y1="90" x2="620" y2="90" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="355" y1="170" x2="620" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="355" y1="90" x2="355" y2="170" stroke="var(--border-strong)" stroke-width="0"/>
+<line x1="380" y1="90" x2="380" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<text x="366" y="134" font-size="11.5" text-anchor="end" fill="var(--warn)">短路</text>
+<path d="M440 90 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0" fill="none" stroke="var(--text)" stroke-width="1.3"/>
+<text x="470" y="74" font-size="12" text-anchor="middle" fill="var(--muted)">L</text>
+<line x1="545" y1="90" x2="545" y2="122" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="533" y1="122" x2="557" y2="122" stroke="var(--text)" stroke-width="1.5"/>
+<line x1="533" y1="132" x2="557" y2="132" stroke="var(--text)" stroke-width="1.5"/>
+<line x1="545" y1="132" x2="545" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<text x="566" y="132" font-size="11.5" fill="var(--muted)">C</text>
+<line x1="595" y1="90" x2="595" y2="112" stroke="var(--border-strong)" stroke-width="1"/>
+<rect x="588" y="112" width="14" height="36" rx="2" fill="var(--card)" stroke="var(--text)" stroke-width="1"/>
+<line x1="595" y1="148" x2="595" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<text x="608" y="134" font-size="11.5" fill="var(--muted)">R</text>
+<line x1="355" y1="90" x2="380" y2="90" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="380" y1="90" x2="440" y2="90" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="500" y1="90" x2="595" y2="90" stroke="var(--border-strong)" stroke-width="1"/>
+
+<text x="55" y="205" font-size="13" fill="var(--t2-title)">L·diL/dt = Vg − vC&nbsp;&nbsp;·&nbsp;&nbsp;C·dvC/dt = iL − vC/R</text>
+<text x="355" y="205" font-size="13" fill="var(--t2-title)">L·diL/dt = −vC&nbsp;&nbsp;·&nbsp;&nbsp;电容方程不变</text>
+<text x="55" y="228" font-size="11.5" fill="var(--faint)">唯一的差别在电感电压方程——开关只作用在"给电感充多少伏秒"上</text>
+</svg>
+<figcaption>分段线性的产物：两套线性方程。注意区间 2 里二极管导通把电感左端钳到地——"开关的作用"被翻译成"电感左端电压在 Vg 和 0 之间切换"。这个观察正是 3.4 节弧平均的出发点。</figcaption>
+</figure>
+
+<div class="eq">
+区间 1（0 &lt; <i>t</i> &lt; <i>d</i>T）：&nbsp;&nbsp;<i>L</i> d<i>i</i><sub>L</sub>/d<i>t</i> = <i>v</i><sub>g</sub> − <i>v</i><sub>C</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>C</i> d<i>v</i><sub>C</sub>/d<i>t</i> = <i>i</i><sub>L</sub> − <i>v</i><sub>C</sub>/<i>R</i>
+</div>
+<div class="eq">
+区间 2（<i>d</i>T &lt; <i>t</i> &lt; <i>T</i>）：&nbsp;&nbsp;<i>L</i> d<i>i</i><sub>L</sub>/d<i>t</i> = −<i>v</i><sub>C</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>C</i> d<i>v</i><sub>C</sub>/d<i>t</i> = <i>i</i><sub>L</sub> − <i>v</i><sub>C</sub>/<i>R</i>
+</div>
+<p>两个区间的电容方程一模一样——这是 Buck 结构简单的好处。对 Boost 和 Buck-Boost，两个区间的<b>电容</b>方程也不同（二极管换到输出侧给电容充电），写的时候要格外小心。</p>
+
+<h3 id="ch02-3">2.3 区间矩阵形式</h3>
+<p>把每个区间的方程整理成标准状态空间形式：</p>
+<div class="eq">
+d<b>x</b>/d<i>t</i> = <b>A</b><sub>k</sub><b>x</b> + <b>B</b><sub>k</sub><i>v</i><sub>g</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">k = 1（导通区间）、k = 2（续流区间）</span>
+</div>
+<div class="eq">
+<b>A</b><sub>1</sub> = <b>A</b><sub>2</sub> = <span style="display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.5;">[ 0 , −1/<i>L</i> ; 1/<i>C</i> , −1/(<i>RC</i>) ]</span>&nbsp;&nbsp;&nbsp;&nbsp;
+<b>B</b><sub>1</sub> = [ 1/<i>L</i> ; 0 ]&nbsp;&nbsp;&nbsp;&nbsp;<b>B</b><sub>2</sub> = [ 0 ; 0 ]
+</div>
+<p>Buck 的特点再次显形：<b>矩阵 A 两个区间相同，只有激励 B 在切换</b>。因此 Buck 的开关行为对状态方程的影响完全集中在"输入电压什么时候接到电感上"，这也是它平均模型最简、传函分子只有一个 ESR 零点的原因。</p>
+<div class="formula-grid">
+  <div class="fc">
+    <div class="h">区间 1 状态轨迹（线性时不变解）</div>
+    <div class="e"><b>x</b>(<i>t</i>) = e<sup><b>A</b>₁t</sup><b>x</b>(0) + ∫₀ᵗ e<sup><b>A</b>₁(t−τ)</sup><b>B</b>₁<i>v</i><sub>g</sub>dτ</div>
+  </div>
+  <div class="fc">
+    <div class="h">区间 2 状态轨迹（零输入自然响应）</div>
+    <div class="e"><b>x</b>(<i>t</i>) = e<sup><b>A</b>₂(<i>t</i>−<i>d</i>T)</sup><b>x</b>(<i>d</i>T)</div>
+  </div>
+</div>
+<div class="note">
+  <p><b>这两个区间指数解本身就是一种模型</b>：把它们用周期性边界条件 <b>x</b>(<i>T</i>) = <b>x</b>(0) 拼接，得到含全部开关纹波的精确周期稳态解——这就是采样数据模型的雏形，也是仿真器求解直流工作点的方法。状态空间平均（下一章）丢掉的就是区间内信息，只保留周期平均。<b>算纹波、算损耗的活留在区间解里，算环路的活才交给平均模型</b>，别拿错工具。</p>
+</div>
+
+<h2 id="ch03"><span class="num">03</span>状态空间平均法：把开关抹平</h2>
+<p>状态空间平均法（State-Space Averaging，SSA）由 Middlebrook 和 Ćuk 在 1976 年提出，是电力电子能作为线性系统工程存在的根基。一句话：<strong>用"占空比加权的状态方程平均"替代"逐区间开关切换"</strong>。</p>
+
+<h3 id="ch03-1">3.1 加权平均：推导与波形理解</h3>
+<p>对一个开关周期内的导数取平均，并按两个区间各自所占时间比例（<i>d</i> 和 <i>d</i>′ = 1 − <i>d</i>）拆开积分：</p>
+<div class="eq">
+⟨d<b>x</b>/d<i>t</i>⟩ = (1/<i>T</i>) ∫₀<sup>T</sup> (d<b>x</b>/d<i>t</i>) d<i>t</i> = <i>d</i>(<b>A</b><sub>1</sub><b>x</b> + <b>B</b><sub>1</sub><i>v</i><sub>g</sub>) + <i>d</i>′(<b>A</b><sub>2</sub><b>x</b> + <b>B</b><sub>2</sub><i>v</i><sub>g</sub>)
+</div>
+<p>这里隐含两步近似：① 区间内矩阵视为常数（即区间内 <i>v</i><sub>g</sub>、<i>d</i> 不变）；② 状态变量用平均值代替瞬时值——成立条件是 1.3 节的低频假设。标量形式对 Buck 写出中间结果：</p>
+<div class="eq">
+<i>L</i> d<i>i</i><sub>L</sub>/d<i>t</i> = <i>d</i>(<i>v</i><sub>g</sub> − <i>v</i><sub>C</sub>) + <i>d</i>′(−<i>v</i><sub>C</sub>) = <i>d</i>·<i>v</i><sub>g</sub> − <i>v</i><sub>C</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">开关从方程里消失了，只剩下连续的 d</span>
+</div>
+
+<figure>
+<svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>开关节点电压的波形平均：瞬时方波、平均值与低频包络</title>
+<desc>上图为开关节点电压 vsw 的方波，在 Vg 与 0 之间切换，虚线为周期平均值 dVg。下图为平均模型的视角：只剩低频包络，开关纹波被平均化丢弃、被 LC 滤除。</desc>
+
+<text x="50" y="24" font-size="12" fill="var(--muted)">瞬时波形：开关节点电压 vsw(t)</text>
+<line x1="70" y1="50" x2="70" y2="190" stroke="var(--border-strong)" stroke-width="0.8"/>
+<line x1="70" y1="190" x2="620" y2="190" stroke="var(--border-strong)" stroke-width="0.8"/>
+<text x="64" y="86" font-size="11.5" text-anchor="end" fill="var(--muted)">Vg</text>
+<text x="64" y="194" font-size="11.5" text-anchor="end" fill="var(--muted)">0</text>
+<text x="620" y="208" font-size="11.5" text-anchor="end" fill="var(--faint)">t</text>
+
+<polyline points="70,190 70,80 170,80 170,190 310,190 310,80 410,80 410,190 550,190 550,80 620,80"
+  fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+<line x1="70" y1="124" x2="620" y2="124" stroke="var(--warn)" stroke-width="1.2" stroke-dasharray="5 4"/>
+<text x="616" y="116" font-size="11.5" text-anchor="end" fill="var(--warn)">周期平均 ≈ d·Vg（随 d 慢变）</text>
+<text x="120" y="72" font-size="11" text-anchor="middle" fill="var(--faint)">d·T</text>
+<text x="240" y="72" font-size="11" text-anchor="middle" fill="var(--faint)">d′·T</text>
+
+<text x="50" y="240" font-size="12" fill="var(--muted)">平均模型眼里只剩这条线：</text>
+<line x1="70" y1="272" x2="70" y2="252" stroke="var(--border-strong)" stroke-width="0.8"/>
+<line x1="70" y1="262" x2="620" y2="262" stroke="var(--border-strong)" stroke-width="0.8"/>
+<polyline points="70,246 170,252 270,262 370,270 470,274 570,268 620,262" fill="none" stroke="var(--ok)" stroke-width="1.8"/>
+<text x="330" y="292" font-size="11.5" text-anchor="middle" fill="var(--faint)">低频包络（纹波与开关沿被丢弃——这正是 d̂ 与 x̂ 的世界）</text>
+</svg>
+<figcaption>平均化的波形图像：方波用一条随 d 慢变的平均线替代。高频开关分量去哪里了？——被 L 和 C 滤掉了（这正是低频假设的物理保障），代价是平均模型对 f<sub>sw</sub> 附近的边带无能为力。</figcaption>
+</figure>
+
+<h3 id="ch03-2">3.2 一般公式</h3>
+<p>把区间矩阵按占空比加权合并，SSA 的标准产物是一个<b>连续时不变、但含 d·x 乘积</b>的大信号平均模型：</p>
+<div class="eq">
+d<b>x</b>/d<i>t</i> = [<b>A</b><sub>1</sub><i>d</i> + <b>A</b><sub>2</sub><i>d</i>′]<b>x</b> + [<b>B</b><sub>1</sub><i>d</i> + <b>B</b><sub>2</sub><i>d</i>′]<i>v</i><sub>g</sub>
+</div>
+<div class="eq">
+<i>y</i> = [<b>C</b><sub>1</sub><i>d</i> + <b>C</b><sub>2</sub><i>d</i>′]<b>x</b> + [<b>E</b><sub>1</sub><i>d</i> + <b>E</b><sub>2</sub><i>d</i>′]<i>v</i><sub>g</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">输出方程同理；E 项来自 ESR 等"直通"通路</span>
+</div>
+<p>两点务必看清：</p>
+<ul>
+<li><strong>开关没了，非线性还在。</strong><i>d</i> 乘在状态变量上，这是双线性项。所以平均模型是"连续但非线性"，能做大信号仿真与直流求解，不能直接画 Bode——那是第 04 章的事。</li>
+<li><strong>矩阵加权不是电路定理</strong>，它平均的是状态方程而不是波形。用之前必须确认两个区间共享同一组状态变量（3.5 节）。</li>
+</ul>
+
+<h3 id="ch03-3">3.3 直流模型：变比自然长出</h3>
+<p>令平均方程导数为零，得到直流模型——所有稳态设计参数都从这里出来，而不是从"伏秒平衡口诀"里背出来：</p>
+<div class="eq">
+0 = [<b>A</b><sub>1</sub><i>D</i> + <b>A</b><sub>2</sub><i>D</i>′]<b>X</b> + [<b>B</b><sub>1</sub><i>D</i> + <b>B</b><sub>2</sub><i>D</i>′]<i>V</i><sub>g</sub>&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;<b>X</b> = −<b>A</b><sup>−1</sup><b>B</b><i>V</i><sub>g</sub>
+</div>
+<p>伏秒平衡与电荷平衡是这个矩阵方程在"电感 / 电容"两条行上的投影：⟨<i>v</i><sub>L</sub>⟩ = 0、⟨<i>i</i><sub>C</sub>⟩ = 0。<strong>这张表之所以放在这里</strong>：它是"令导数为零"这把锤子敲三个拓扑的直接输出，也是全文第一份可交付产物（对照 1.4 节清单第一行）——后面所有章节的模型，都以这张表的静态值为工作点。三个基本拓扑的结果一次列全（理想元件、CCM）：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:15%">拓扑</th><th style="width:15%">变比 <i>M</i> = <i>V</i><sub>o</sub>/<i>V</i><sub>g</sub></th><th style="width:15%">电感电流</th><th style="width:20%">开关电压应力</th><th>开关 / 二极管平均电流</th></tr></thead>
+<tbody>
+<tr><td>Buck</td><td><i>D</i></td><td><i>I</i><sub>o</sub></td><td><i>V</i><sub>g</sub></td><td>开关 <i>D·I</i><sub>L</sub> · 二极管 <i>D′·I</i><sub>L</sub></td></tr>
+<tr><td>Boost</td><td>1 / <i>D</i>′</td><td><i>I</i><sub>o</sub> / <i>D</i>′</td><td><i>V</i><sub>o</sub></td><td>开关 <i>D·I</i><sub>L</sub> · 二极管 <i>I</i><sub>o</sub></td></tr>
+<tr><td>Buck-Boost</td><td><i>D</i> / <i>D</i>′</td><td><i>I</i><sub>o</sub> / <i>D</i>′</td><td><i>V</i><sub>g</sub> + <i>V</i><sub>o</sub></td><td>开关 <i>D·I</i><sub>L</sub> · 二极管 <i>I</i><sub>o</sub></td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>表上每个值是怎么来的：两条平衡 + 两态钳位</h4>
+<p>整张表只需要三条工具：电感伏秒平衡（⟨v<sub>L</sub>⟩=0）、电容电荷平衡（⟨i<sub>C</sub>⟩=0）、以及"开关关断时两端被钳在哪个电位"。逐列过一遍：</p>
+<div class="eq">
+变比列（伏秒平衡）：&nbsp;&nbsp;Buck：&nbsp;<i>D</i>(<i>V</i><sub>g</sub>−<i>V</i><sub>o</sub>) + <i>D</i>′(−<i>V</i><sub>o</sub>) = 0&nbsp;&nbsp;→&nbsp;&nbsp;<i>V</i><sub>o</sub> = <i>D·V</i><sub>g</sub>
+</div>
+<div class="eq">
+&nbsp;&nbsp;Boost：&nbsp;<i>D·V</i><sub>g</sub> + <i>D</i>′(<i>V</i><sub>g</sub>−<i>V</i><sub>o</sub>) = 0&nbsp;&nbsp;→&nbsp;&nbsp;<i>V</i><sub>o</sub> = <i>V</i><sub>g</sub>/<i>D</i>′&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Buck-Boost：&nbsp;<i>D·V</i><sub>g</sub> − <i>D</i>′<i>V</i><sub>o</sub> = 0&nbsp;&nbsp;→&nbsp;&nbsp;<i>V</i><sub>o</sub> = (<i>D</i>/<i>D</i>′)<i>V</i><sub>g</sub>
+</div>
+<div class="eq">
+电感电流列（电荷平衡）：&nbsp;&nbsp;⟨<i>i</i><sub>C</sub>⟩ = 0 ⇒ 电容平均电流为零 ⇒ 二极管平均电流 = <i>I</i><sub>o</sub>
+</div>
+<p>Buck 的电感直接串联在输出上，⟨i<sub>L</sub>⟩ = I<sub>o</sub>；Boost 与 Buck-Boost 的电感只在续流段（d′）经由二极管向输出供电，故 D′·I<sub>L</sub> = I<sub>o</sub> → I<sub>L</sub> = I<sub>o</sub>/D′。用功率平衡验算 Boost：V<sub>g</sub>·I<sub>L</sub> = V<sub>o</sub>·I<sub>o</sub> → I<sub>L</sub> = (V<sub>o</sub>/V<sub>g</sub>)·I<sub>o</sub> = I<sub>o</sub>/D′ ✓ 两条路同一个答案。</p>
+<div class="eq">
+开关电压应力列（两态钳位）：&nbsp;&nbsp;开关<b>关断</b>时承受的电压 = 它两端被钳住的电位差
+</div>
+<p>Buck 的开关节点关断时被二极管钳到 0，开关上端接 V<sub>g</sub> → 应力 V<sub>g</sub>；Boost 的开关节点导通时为 0、关断时被二极管钳到 V<sub>o</sub> → 应力 V<sub>o</sub>；Buck-Boost 关断时开关节点被钳到 −V<sub>o</sub>，开关两端 = V<sub>g</sub> + V<sub>o</sub>。开关平均电流同理：开关只在导通段流过电感电流 → ⟨i<sub>sw</sub>⟩ = D·I<sub>L</sub>；续流段电流全部走二极管 → Buck 二极管平均 D′·I<sub>L</sub> = I<sub>o</sub>，Boost / Buck-Boost 二极管平均直接就是 I<sub>o</sub>（输出电流唯一通路）。</p>
+<div class="note">
+  <p><b>为什么这张表值得推一遍再背</b>：元件应力列直接决定 MOSFET 耐压 / 电流规格与二极管选型；变比列决定控制环的静态增益范围。上面六行推导说明——<b>这张表是"两条平衡 + 两态钳位"三句话的机械输出，不是记忆题</b>。遇到多绕组反激、带变压器的任何拓扑，把绕组电压按匝比折算后重复同样三句话，就能现场推出来，不需要找口诀。</p>
+</div>
+
+<h3 id="ch03-4">3.4 电路视角：弧平均</h3>
+<p>SSA 平均的是矩阵；还有一种完全等价的"电路级"做法——<strong>弧平均（switch-network / arc averaging）</strong>：把每条被开关"斩"的支路（图论中称为弧）直接换成它的周期平均电压或平均电流。</p>
+<div class="eq">
+平均电压弧：&nbsp;<i>v̄</i> = <i>d</i>·<i>v</i><sub>on</sub> + <i>d</i>′·<i>v</i><sub>off</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;平均电流弧：&nbsp;<i>ī</i> = <i>d</i>·<i>i</i><sub>on</sub> + <i>d</i>′·<i>i</i><sub>off</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">on / off = 该支路在两个区间里的量</span>
+</div>
+<p>对 Buck：开关节点电压在 {<i>v</i><sub>g</sub>, 0} 之间切换 → 换成受控电压源 <i>d</i>·<i>v</i><sub>g</sub>；电源支路电流在 {<i>i</i><sub>L</sub>, 0} 之间切换 → 换成受控电流源 <i>d</i>·<i>i</i><sub>L</sub>。得到的纯线性（含受控源）电路与 SSA 方程逐项相同。</p>
+<ul>
+<li><strong>SIMPLIS 的开关平均模型</strong>就是弧平均的自动化实现：工程师只画开关原理图，工具自动构造平均电路，瞬态仿真比开关级快一到两个数量级。</li>
+<li>弧平均以支路为对象、不要求两组区间方程共享状态变量集合，适用面略宽于矩阵 SSA；两者对开关网络给出的端口特性完全一致——这正是下一章 PWM switch 的起点。</li>
+</ul>
+
+<h3 id="ch03-5">3.5 SSA 什么时候失效</h3>
+<p>SSA 的前提是"两个区间共用同一组状态变量，且它们连续"。以下四种情况破坏这个前提，硬推会得到错误方程：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:24%">失效情形</th><th style="width:38%">物理原因</th><th>工程对策</th></tr></thead>
+<tbody>
+<tr><td>电容换接（容性回路 / 电容被开关并接短路）</td><td>电荷在电容间瞬时再分配，电容电压跳变——"状态连续"破产</td><td>改用电荷平衡方程描述跳变；或保留回路寄生电阻让解连续；开关电容类电路需要专门的切换电容平均方法</td></tr>
+<tr><td>电感斩波（电感电流被开关强制断开）</td><td>电流被迫突变 → 高压尖峰由寄生电容承接，该电容成为新状态变量</td><td>把开关节点电容显式纳入模型（阶数升高）；反激 / 推挽里这是最常见陷阱</td></tr>
+<tr><td>f<sub>sw</sub> 接近回路谐振频率（谐振变换器）</td><td>状态变量单个周期内变化剧烈，低频假设不成立</td><td>描述函数法（基波近似）、周期解拼接、或直接开关仿真 + FRA</td></tr>
+<tr><td>DCM</td><td>第三区间时长 d₂T 由电路内部决定，不再是独立输入</td><td>第 09 章：开关电感 / 开关网络的 DCM 模型</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note warn">
+  <p><b>判断口诀</b>：画出两个区间的等效电路后检查——是否存在"电容电压或电感电流在切换瞬间必须跳变"的约束？有，SSA 在这个拓扑上就不合法，先换方法再动笔。这类场合（LLC、开关电容、部分钳位拓扑）的环路问题，工程上普遍靠 FRA 实测 + 数字整定绕过，而不是继续推解析模型。</p>
+</div>
+
+<h2 id="ch04"><span class="num">04</span>小信号线性化：在工作点拉直</h2>
+
+<h3 id="ch04-1">4.1 扰动与切线</h3>
+<p>平均模型里剩下最后一个非线性：乘积项（<i>d</i>·<i>x</i>、<i>d</i>′·<i>v</i><sub>C</sub>……）。处理办法是经典的泰勒展开——在直流工作点上做一阶近似：</p>
+<div class="eq">
+<i>d</i> = <i>D</i> + <i>d̂</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>x</b> = <b>X</b> + <b>x̂</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>v</i><sub>g</sub> = <i>V</i><sub>g</sub> + <i>v̂</i><sub>g</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">大写 = 3.3 节的直流解；hat = 小扰动</span>
+</div>
+
+<figure>
+<svg viewBox="0 0 660 290" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>非线性特性在工作点处的切线近似</title>
+<desc>横轴为变量 x，纵轴为 f(x)。真实曲线非线性弯曲，在工作点 Q 处作切线，小扰动 x̂ 范围内用切线代替曲线，残差为二阶小量。</desc>
+
+<line x1="70" y1="30" x2="70" y2="240" stroke="var(--border-strong)" stroke-width="0.8"/>
+<line x1="70" y1="240" x2="620" y2="240" stroke="var(--border-strong)" stroke-width="0.8"/>
+<text x="64" y="40" font-size="11.5" text-anchor="end" fill="var(--muted)">f(x)</text>
+<text x="612" y="256" font-size="11.5" text-anchor="end" fill="var(--muted)">x</text>
+
+<path d="M90 226 Q 260 200 360 130 Q 460 62 600 40" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+<text x="510" y="50" font-size="11.5" fill="var(--accent)">真实非线性特性（平均模型）</text>
+
+<circle cx="330" cy="146" r="4" fill="var(--warn)"/>
+<text x="342" y="142" font-size="12" fill="var(--warn)">Q = (X, F)</text>
+<line x1="180" y1="215" x2="480" y2="77" stroke="var(--warn)" stroke-width="1.3" stroke-dasharray="5 4"/>
+<text x="478" y="100" font-size="11.5" text-anchor="end" fill="var(--warn)">切线 = 小信号模型（斜率 F′）</text>
+
+<line x1="300" y1="240" x2="300" y2="160" stroke="var(--border-strong)" stroke-width="0.6" stroke-dasharray="3 3"/>
+<line x1="360" y1="240" x2="360" y2="132" stroke="var(--border-strong)" stroke-width="0.6" stroke-dasharray="3 3"/>
+<line x1="300" y1="160" x2="360" y2="160" stroke="var(--ok)" stroke-width="1"/>
+<line x1="300" y1="160" x2="300" y2="132" stroke="var(--ok)" stroke-width="1"/>
+<text x="329" y="177" font-size="11.5" text-anchor="middle" fill="var(--ok)">x̂</text>
+<text x="366" y="126" font-size="11" fill="var(--faint)">二阶残差 ∝ x̂²</text>
+<line x1="330" y1="240" x2="330" y2="248" stroke="var(--border-strong)" stroke-width="0.8"/>
+<text x="330" y="262" font-size="11.5" text-anchor="middle" fill="var(--muted)">X（直流工作点，来自 3.3）</text>
+</svg>
+<figcaption>线性化的几何图像：只在 Q 点附近的"小邻域"内，曲线才能换成切线。切线就是传递函数；离开邻域（启动、限流、大阶跃），必须回到平均模型本身。</figcaption>
+</figure>
+
+<h3 id="ch04-2">4.2 分离与丢弃：直流与小信号各归各位</h3>
+<p>以 Boost 的电感方程为例，把 <i>d</i>′·<i>v</i><sub>C</sub> 这个乘积项彻底展开一次（<i>d</i>′ = <i>D</i>′ − <i>d̂</i>）：</p>
+<div class="eq">
+<i>L</i> d(<i>I</i><sub>L</sub> + <i>î</i><sub>L</sub>)/d<i>t</i> = (<i>V</i><sub>g</sub> + <i>v̂</i><sub>g</sub>) − (<i>D</i>′ − <i>d̂</i>)(<i>V</i><sub>C</sub> + <i>v̂</i><sub>C</sub>)
+</div>
+<p>展开后按"量级"分拣成三堆：</p>
+<div class="eq">
+直流项：&nbsp;0 = <i>V</i><sub>g</sub> − <i>D</i>′<i>V</i><sub>C</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">恰好是 3.3 的直流方程 → 自动抵消（这就是"先解直流、再谈小信号"的原因）</span>
+</div>
+<div class="eq">
+一阶项：&nbsp;<i>L</i> d<i>î</i><sub>L</sub>/d<i>t</i> = <i>v̂</i><sub>g</sub> − <i>D</i>′<i>v̂</i><sub>C</sub> + <i>V</i><sub>C</sub>·<i>d̂</i>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">保留 → 小信号模型</span>
+</div>
+<div class="eq">
+二阶项：&nbsp;+ <i>d̂</i>·<i>v̂</i><sub>C</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">丢弃：小 × 小 = 更小</span>
+</div>
+<div class="note">
+  <p><b>V<sub>C</sub>·d̂ 是全部戏眼</b>：静态工作点电压与扰动占空比相乘，产生一个"正比于 d̂ 的电压源"。它的大小由工作点决定——同一台变换器在 12 V 和 48 V 输入下，这一项差 4 倍，环路增益就差 4 倍。小信号模型是<b>工作点的切线</b>，不是电路的一劳永逸属性。</p>
+</div>
+
+<h3 id="ch04-3">4.3 小信号状态空间形式</h3>
+<p>对一般平均方程（3.2）做同样的分拣，得到<b>线性时不变</b>的小信号状态方程：</p>
+<div class="eq">
+d<b>x̂</b>/d<i>t</i> = <b>Â</b><b>x̂</b> + <b>B̂</b><sub>1</sub><i>v̂</i><sub>g</sub> + <b>B̂</b><sub>2</sub><i>d̂</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>v̂</i><sub>o</sub> = <b>Ĉ</b><b>x̂</b> + <b>Ê</b><sub>1</sub><i>v̂</i><sub>g</sub> + <b>Ê</b><sub>2</sub><i>d̂</i>
+</div>
+<div class="eq">
+<b>Â</b> = <b>A</b><sub>1</sub><i>D</i> + <b>A</b><sub>2</sub><i>D</i>′&nbsp;&nbsp;&nbsp;&nbsp;<b>B̂</b><sub>1</sub> = <b>B</b><sub>1</sub><i>D</i> + <b>B</b><sub>2</sub><i>D</i>′&nbsp;&nbsp;&nbsp;&nbsp;<b>B̂</b><sub>2</sub> = (<b>A</b><sub>1</sub> − <b>A</b><sub>2</sub>)<b>X</b> + (<b>B</b><sub>1</sub> − <b>B</b><sub>2</sub>)<i>V</i><sub>g</sub>
+</div>
+<p><b>B̂</b>₂ 是"控制输入如何进入状态方程"的通用公式：两个区间矩阵之差，乘上直流工作点。<strong>矩阵之差乘直流量、直流量乘矩阵之差——两个来源合一</strong>。用 Buck 验证：A₁ = A₂ ⇒ (A₁−A₂)<b>X</b> = 0，只剩 (B₁−B₂)<i>V</i><sub>g</sub> = [<i>V</i><sub>g</sub>/<i>L</i> ; 0]，与《电路与系统分析》1.4 节的结论完全一致。再用 Boost 验证：A₁ ≠ A₂（电感与电容方程在两个区间都不同），所以 B̂₂ 同时含 <b>X</b> 与 <i>V</i><sub>g</sub> 两堆项——第 07 章会逐项算给它看。</p>
+
+<h3 id="ch04-4">4.4 传递函数的一般配方</h3>
+<p>零初始条件下取拉普拉斯变换，解线性方程组：</p>
+<div class="eq">
+<b>X̂</b>(<i>s</i>) = (<i>s</i><b>I</b> − <b>Â</b>)<sup>−1</sup>(<b>B̂</b><sub>1</sub><i>V̂</i><sub>g</sub> + <b>B̂</b><sub>2</sub><i>D̂</i>)&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;<i>G</i><sub>vd</sub>(<i>s</i>) = [<b>Ĉ</b>(<i>s</i><b>I</b> − <b>Â</b>)<sup>−1</sup><b>B̂</b><sub>2</sub> + <b>Ê</b><sub>2</sub>]&nbsp;<sub><i>v̂</i>g = 0</sub>
+</div>
+<p>三阶以上交给符号计算；CCM 基本拓扑都是二阶，有一条不用求逆的捷径：</p>
+<div class="formula-grid">
+  <div class="fc">
+    <div class="h">特征多项式（2×2）</div>
+    <div class="e">det(<i>s</i><b>I</b> − <b>Â</b>) = <i>s</i>² − tr(<b>Â</b>)<i>s</i> + det(<b>Â</b>)</div>
+  </div>
+  <div class="fc">
+    <div class="h">双重极点频率</div>
+    <div class="e">ω<sub>0</sub> = √det(<b>Â</b>)</div>
+  </div>
+  <div class="fc">
+    <div class="h">品质因数</div>
+    <div class="e"><i>Q</i> = −√det(<b>Â</b>) / tr(<b>Â</b>)</div>
+  </div>
+  <div class="fc">
+    <div class="h">直通项 Ê 的意义</div>
+    <div class="e">ESR 让输出"直接摸到"开关电流 → 分子出现零点</div>
+  </div>
+</div>
+<p>Buck 验算：det = 1/(<i>LC</i>) ⇒ ω₀ = 1/√(<i>LC</i>) ✓；tr = −1/(<i>RC</i>) ⇒ <i>Q</i> = <i>R</i>√(<i>C</i>/<i>L</i>) ✓。这两条公式对所有二阶平均模型通用，第 07 章 Boost 算例马上再用一次。</p>
+
+<h3 id="ch04-5">4.5 "小信号"要多小</h3>
+<ul>
+<li><strong>幅度判据</strong>：每个扰动的标幺值 ≪ 1（|<i>d̂</i>| ≪ <i>D</i>, <i>D</i>′；|<i>v̂</i>| ≪ <i>V</i>；|<i>î</i>| ≪ <i>I</i>）。若各扰动标幺幅值同为 ε 量级，被丢弃的二阶乘积项就是 O(ε²)——1% 的扰动对应 10⁻⁴ 量级残差，完全可忽略（量级论证即可，没有通用"一半"系数）。</li>
+<li><strong>频域判据</strong>：模型有效期 <i>f</i> &lt; <i>f</i><sub>sw</sub>/2（1.3 节），与幅度无关。</li>
+<li><strong>实测操作判据</strong>：注入幅度减半重测，Bode 曲线不变 = 还在线性区；变了 = 测到了大信号行为，降幅度重来。</li>
+</ul>
+<div class="note warn">
+  <p><b>两个"信号不小"的经典翻车场景</b>：① 轻载下测环路，输出纹波与工作点同量级，小信号假设名存实亡；② 在带限流、跳周期、PFM 调制律的控制器上直接套 CCM 小信号模型——调制器本身是非线性的。先确认"比较器 + 斜坡"这类线性调制器在工作（电压模式的 F<sub>m</sub> = 1/<i>V</i><sub>ramp</sub> 就是这一确认，见《电路与系统分析》5.1 节）。</p>
+</div>
+
+<h2 id="ch05"><span class="num">05</span>PWM Switch 模型：开关即模块</h2>
+
+<h3 id="ch05-1">5.1 为什么把开关模块化</h3>
+<p>SSA 是"整机建模"：换一个拓扑，从区间方程重推一遍。但回头看 02–04 章的工作量分布——<strong>整个电路里非线性、时变的只有开关网络（开关 + 续流二极管）那一小圈，外围的 L、C、R、变压器全是线性件</strong>。Vorperian 在 1990 年把这件事说破：既然开关网络的平均端口特性只是两条方程（3.4 节），为什么不把它做成一个<b>三端子黑盒子电路</b>，像查晶体管小信号模型那样查表使用？</p>
+<ul>
+<li><strong>不写状态方程也能建模</strong>：替换掉开关网络后，剩下一个纯线性 AC 电路，分压分流直接读传递函数。</li>
+<li><strong>CCM 与 DCM 统一处理</strong>：模型形式不变，变的只是内部等效参数（第 09 章）。</li>
+<li><strong>SPICE 原生兼容</strong>：模型全部由受控源构成，开关变换器可以做解析小信号的 AC 扫描，快且无收敛灾难。</li>
+<li><strong>参数即工作点</strong>：模型里的 V、I 就是直流解中的开关电压 / 电流应力，物理意义一眼看穿。</li>
+</ul>
+
+<h3 id="ch05-2">5.2 三端与两种接法</h3>
+<p>Vorperian 的原始定义（与 TI <a href="https://www.ti.com/lit/an/slva061/slva061.pdf" target="_blank" rel="noopener">SLVA061</a> 一致）：把"开关 + 反并联二极管"抠出来封成三端网络，三个端子<strong>都是真实的电气端口</strong>——<i>a</i>（active，有源端）、<i>p</i>（passive，无源端）、<i>c</i>（common，公共端）。内部结构固定为：<b>开关在 a–c 之间，二极管在 p–c 之间</b>——所以 <b>c 永远是开关与二极管共享的那个节点，即开关节点 SW</b>。要特别澄清一点：控制量 <i>d</i>(t) 是这个模型的<strong>输入变量</strong>（由栅极驱动电路决定），它不是第四个"取电端子"——不少二手资料把三端写成"功率端/开关端/控制端"，属于以讹传讹。</p>
+
+<figure>
+<svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>PWM switch 的三端子定义（a/p/c）与两种工作态</title>
+<desc>左为三端符号：a 有源端、p 无源端、c 公共端（开关与二极管的共享节点 = SW）。中为内部两态：d 态 a–c 闭合，d′ 态 a–c 开路、电流经 p–c 二极管换流。右为 Buck 型与 Boost 型的具体接线映射。</desc>
+
+<rect x="60" y="80" width="130" height="120" rx="10" fill="var(--t2-fill)" stroke="var(--t2-stroke)" stroke-width="0.5"/>
+<text x="125" y="122" font-size="14" font-weight="600" text-anchor="middle" fill="var(--t2-title)">PWM</text>
+<text x="125" y="142" font-size="14" font-weight="600" text-anchor="middle" fill="var(--t2-title)">SWITCH</text>
+<text x="125" y="166" font-size="10.5" text-anchor="middle" fill="var(--t2-sub)">开关 a–c · 二极管 p–c</text>
+<line x1="125" y1="80" x2="125" y2="46" stroke="var(--border-strong)" stroke-width="1.2"/>
+<text x="137" y="52" font-size="12.5" fill="var(--muted)">a（有源端）</text>
+<line x1="125" y1="200" x2="125" y2="236" stroke="var(--border-strong)" stroke-width="1.2"/>
+<text x="137" y="246" font-size="12.5" fill="var(--muted)">c（公共端 = SW 节点）</text>
+<line x1="190" y1="140" x2="228" y2="140" stroke="var(--border-strong)" stroke-width="1.2"/>
+<text x="224" y="132" font-size="12" fill="var(--muted)">p（无源端）</text>
+
+<line x1="296" y1="100" x2="356" y2="100" stroke="var(--border-strong)" stroke-width="1"/>
+<circle cx="356" cy="100" r="3" fill="var(--text)"/>
+<line x1="356" y1="100" x2="416" y2="100" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="368" y1="88" x2="406" y2="98" stroke="var(--text)" stroke-width="1.3"/>
+<text x="356" y="72" font-size="12" text-anchor="middle" fill="var(--t2-title)">d 态：a–c 闭合</text>
+<line x1="326" y1="170" x2="356" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<circle cx="356" cy="170" r="3" fill="var(--text)"/>
+<line x1="386" y1="170" x2="416" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="368" y1="158" x2="406" y2="180" stroke="var(--faint)" stroke-width="1.3"/>
+<text x="356" y="212" font-size="12" text-anchor="middle" fill="var(--t2-title)">d′ 态：a–c 开路</text>
+<text x="296" y="248" font-size="11.5" fill="var(--faint)">电流换接到 p–c 二极管（或同步管）</text>
+
+<line x1="452" y1="60" x2="452" y2="256" stroke="var(--border)" stroke-width="1"/>
+<text x="470" y="72" font-size="12.5" font-weight="600" fill="var(--t2-title)">Buck 型（高侧，通称 P 型）</text>
+<text x="470" y="92" font-size="11.5" fill="var(--muted)">a = 输入 Vg · p = 功率地</text>
+<text x="470" y="108" font-size="11.5" fill="var(--muted)">c = SW：导通 = Vg，关断 ≈ 0</text>
+<text x="470" y="142" font-size="12.5" font-weight="600" fill="var(--t2-title)">Boost 型（低侧，通称 N 型）</text>
+<text x="470" y="162" font-size="11.5" fill="var(--muted)">a = 功率地 · p = 输出 · c = SW</text>
+<text x="470" y="178" font-size="11.5" fill="var(--muted)">导通 = 0，关断被钳到 Vo</text>
+<text x="470" y="216" font-size="11.5" fill="var(--ok)">两种接法端口方程只差 d 与 d′</text>
+<text x="470" y="232" font-size="11.5" fill="var(--ok)">的位置——查表即用，不换推导</text>
+</svg>
+<figcaption>PWM switch 的符号学（按 SLVA061 定义）：开关在 a–c、二极管在 p–c，<b>c 恒为开关节点</b>；d(t) 是模型的控制变量而非第四个取电端子。此后一切 PWM 变换器 = PWM switch + 线性网络。</figcaption>
+</figure>
+
+<h3 id="ch05-3">5.3 大信号端口特性</h3>
+<p>用 3.4 节的弧平均对两个基本拓扑分别求端口特性（c = 开关节点，是开关与二极管的公共端；电流沿 a–c 与 p–c 两条弧换流）：</p>
+<div class="eq">
+Buck 型（高侧）：&nbsp;&nbsp;<i>i</i><sub>sw</sub> = <i>d</i>·<i>i</i><sub>L</sub>&nbsp;&nbsp;&nbsp;&nbsp;<i>v</i><sub>sw</sub> = <i>d</i>·<i>v</i><sub>g</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">sw = 开关节点（switch node）</span>
+</div>
+<div class="eq">
+Boost 型（低侧）：&nbsp;&nbsp;<i>i</i><sub>sw</sub> = <i>d</i>·<i>i</i><sub>L</sub>&nbsp;&nbsp;&nbsp;&nbsp;<i>v</i><sub>sw</sub> = <i>d</i>′·<i>v</i><sub>o</sub>
+</div>
+<p><strong>这就是 PWM switch 的全部大信号模型</strong>——两条代数方程。它不对外围电路做任何假设：外接电感、接变压器、接第二级开关网络，端口特性一字不改。Vorperian 把它画成一个理想"斩波器"（chopper）：电压弧乘 <i>d</i> 或 <i>d</i>′、电流弧乘 <i>d</i>；直流稳态下斩波器退化为匝比 <i>D</i> : <i>D</i>′ 的直流变压器——Boost 的变比 1/<i>D</i>′ 就是从这个阻抗关系一步跳出来的。</p>
+
+<h3 id="ch05-4">5.4 线性化：小信号等效子电路</h3>
+<p>对端口特性做 4.2 节的"分拣"，得到小信号端口方程（以 Boost 型为例，静态值用大写字母）：</p>
+<div class="eq">
+<i>î</i><sub>sw</sub> = <i>D</i>·<i>î</i><sub>L</sub> + <i>I</i><sub>L</sub>·<i>d̂</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>v̂</i><sub>sw</sub> = <i>D</i>′·<i>v̂</i><sub>o</sub> − <i>V</i><sub>o</sub>·<i>d̂</i>
+</div>
+<p>这两条线性方程各自对应现成的电路元件：一条含"冻结匝比"的传导支路（<i>D</i>·<i>î</i><sub>L</sub>、<i>D</i>′·<i>v̂</i><sub>o</sub> 项），加上 <i>d̂</i> 控制的两个受控源——<b>串联电压源 e<sub>a</sub> = V·d̂ 与并联电流源 j<sub>c</sub> = I·d̂</b>，其中 V、I 取该弧"两态之差"与"导通电流"。这就是 Vorperian 小信号 PWM switch 的完整内容。Buck 与 Boost 的查表值：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:24%">量</th><th style="width:38%">Buck 型（高侧）</th><th>Boost 型（低侧）</th></tr></thead>
+<tbody>
+<tr><td>电压弧受控源（串联）</td><td><i>V</i><sub>g</sub>·<i>d̂</i> + <i>D</i>·<i>v̂</i><sub>g</sub>（注入换流回路）</td><td>−<i>V</i><sub>o</sub>·<i>d̂</i> + <i>D</i>′·<i>v̂</i><sub>o</sub>（串在电感-输出弧上）</td></tr>
+<tr><td>电流弧受控源（并联）</td><td><i>I</i><sub>L</sub>·<i>d̂</i> + <i>D</i>·<i>î</i><sub>L</sub>（输入侧分流）</td><td><i>I</i><sub>L</sub>·<i>d̂</i> + <i>D</i>′·<i>î</i><sub>L</sub> 分流给二极管侧</td></tr>
+<tr><td>物理读法</td><td>d̂ 调制"送进电感的电压"</td><td>d̂ 先"偷走二极管电流"（负号），再慢慢补回电感</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note">
+  <p><b>一句话记忆</b>：d̂ 在 PWM switch 里被翻译成两个源——电压弧上是一个大小 =（该弧两态电压差）× d̂ 的串联电压源，电流弧上是一个大小 =（该弧静态电流）× d̂ 的并联电流源。<b>系数全是工作点量</b>，所以扫工况 = 改受控源增益，不用重推模型。Boost 那行的"物理读法"已经预告了它的右半平面零点——第 07 章见。</p>
+</div>
+
+<h3 id="ch05-5">5.5 给 Buck 直接画小信号电路</h3>
+<p>这一节做一次完整的实操演示：目标是不列任何矩阵，<strong>用画电路的方式把 Buck 的 G<sub>vd</sub> 拿到手</strong>。过程分五步，每步只做一件事——如果你跟着 3～4 章推过矩阵版，这一节就是同一件事的"画图版"，两边逐项对得上。</p>
+
+<h4>第 1 步：从大信号端口特性出发（回顾 5.3）</h4>
+<p>Buck 的开关对（Q、D）平均之后只剩两条端口方程。第一条来自"开关节点电压"：Q 导通时 SW = <i>v</i><sub>g</sub>、D 续流时 SW = 0，按占空比加权得到；第二条来自"输入支路电流"：输入电流只在导通段流动：</p>
+<div class="eq">
+<i>v</i><sub>sw</sub> = <i>d</i>·<i>v</i><sub>g</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>i</i><sub>sw</sub> = <i>d</i>·<i>i</i><sub>L</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">开关对（Q、D）被这两条方程完全代表——这就是"开关即模块"</span>
+</div>
+<p><strong>从此电路里不再有开关和二极管，只有这两条"平均化端口特性"。</strong>接下来对所有非线性（乘积）做线性化。</p>
+
+<h4>第 2 步：线性化电压方程（本节的核心动作）</h4>
+<p>把 <i>d</i> = <i>D</i> + <i>d̂</i>、<i>v</i><sub>g</sub> = <i>V</i><sub>g</sub> + <i>v̂</i><sub>g</sub> 代入第一条方程，按 4.2 节的分拣规则展开成四项：</p>
+<div class="eq">
+<i>v</i><sub>sw</sub> = (<i>D</i>+<i>d̂</i>)(<i>V</i><sub>g</sub>+<i>v̂</i><sub>g</sub>) = <i>D·V</i><sub>g</sub>&nbsp;+&nbsp;<i>V</i><sub>g</sub>·<i>d̂</i>&nbsp;+&nbsp;<i>D</i>·<i>v̂</i><sub>g</sub>&nbsp;+&nbsp;<i>d̂·v̂</i><sub>g</sub>
+</div>
+<div class="eq">
+→&nbsp;&nbsp;<i>v̂</i><sub>sw</sub> = <i>V</i><sub>g</sub>·<i>d̂</i> + <i>D</i>·<i>v̂</i><sub>g</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">静态项归直流模型；二阶项丢弃；剩下两个"扰动源"</span>
+</div>
+<p>这两个受控项就是整张小信号电路图里全部的"激励源"，来历各不相同：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:22%">项</th><th style="width:40%">来历</th><th>什么时候保留</th></tr></thead>
+<tbody>
+<tr><td><i>D·V</i><sub>g</sub></td><td>静态占空比 × 静态输入 = 开关节点的直流电位</td><td>归直流模型（3.3 节），交流图上不出现</td></tr>
+<tr><td><b><i>V</i><sub>g</sub>·<i>d̂</i></b></td><td><b>静态输入电压 × 占空比扰动</b>——控制量 d̂ 进入电路的唯一入口</td><td>求 G<sub>vd</sub>（本节主角）</td></tr>
+<tr><td><b><i>D</i>·<i>v̂</i><sub>g</sub></b></td><td><b>静态占空比 × 输入扰动</b>——输入扰动的传播通路</td><td>求 G<sub>vg</sub>（6.2 节）</td></tr>
+<tr><td><i>d̂·v̂</i><sub>g</sub></td><td>小 × 小</td><td>永远丢弃（4.2 节）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>第 3 步：按"交流等效三规则"换元件</h4>
+<ul>
+<li><strong>直流源置零</strong>：直流电压源对交流呈短路——V<sub>g</sub> 从图上消失，它的"静态值"只以系数形式活在受控源 <i>V</i><sub>g</sub>·<i>d̂</i> 里。</li>
+<li><strong>线性元件照旧</strong>：L、C、R 不是开关，不受平均化影响，直接换成 s 域阻抗（<i>sL</i>、1/<i>sC</i>、<i>R</i>）；电容带上 ESR <i>r</i><sub>C</sub>。</li>
+<li><strong>受控源接入</strong>：把第 2 步的 <i>v̂</i><sub>sw</sub> 画成串联在"电感支路最前端"的受控电压源——它驱动的就是原来开关节点的位置。</li>
+</ul>
+<div class="note">
+  <p><b>最容易困惑的一点：二极管去哪了？</b>它在续流段"把 SW 钳到 0"的作用，已经在第 1 步被平均进 <i>v</i><sub>sw</sub> = <i>d</i>·<i>v</i><sub>g</sub> 这条方程里（"导通时是 v<sub>g</sub>、续流时是 0"正是二极管钳位的结果）。平均化把开关对的<strong>作用</strong>打包了，交流图上自然不再单独出现器件。<b>小信号电路里没有二极管，不是漏画，是被平均掉了。</b></p>
+</div>
+
+<h4>第 4 步：读图——剩下的全是分压</h4>
+
+<figure>
+<svg viewBox="0 0 660 268" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Buck 变换器的 PWM switch 小信号等效电路</title>
+<desc>开关网络被替换为菱形受控电压源 Vg·d̂（保留 v̂g 时为 Vg·d̂ + D·v̂g），其后为电感 L、带 ESR 的电容 C 与负载 R 构成的线性网络，输出端可直接分压读出传递函数。</desc>
+
+<line x1="60" y1="110" x2="600" y2="110" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="60" y1="210" x2="600" y2="210" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="60" y1="110" x2="110" y2="110" stroke="var(--border-strong)" stroke-width="1"/>
+
+<polygon points="148,86 186,110 148,134 110,110" fill="var(--card)" stroke="var(--warn)" stroke-width="1.4"/>
+<text x="148" y="114" font-size="10" text-anchor="middle" fill="var(--warn)">Vg·d̂</text>
+<text x="148" y="66" font-size="11.5" text-anchor="middle" fill="var(--warn)">受控电压源（开关网络 → 线性化）</text>
+<line x1="186" y1="110" x2="250" y2="110" stroke="var(--border-strong)" stroke-width="1"/>
+
+<path d="M250 110 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0 a10 10 0 0 1 20 0" fill="none" stroke="var(--text)" stroke-width="1.3"/>
+<text x="290" y="92" font-size="12" text-anchor="middle" fill="var(--muted)">sL</text>
+<line x1="330" y1="110" x2="372" y2="110" stroke="var(--border-strong)" stroke-width="1"/>
+
+<circle cx="372" cy="110" r="3" fill="var(--text)"/>
+<text x="384" y="102" font-size="12" fill="var(--muted)">v̂o</text>
+<line x1="372" y1="110" x2="372" y2="136" stroke="var(--border-strong)" stroke-width="1"/>
+<rect x="364" y="136" width="16" height="22" rx="2" fill="var(--card)" stroke="var(--text)" stroke-width="1"/>
+<text x="390" y="151" font-size="11.5" fill="var(--muted)">rC</text>
+<line x1="372" y1="158" x2="372" y2="170" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="356" y1="170" x2="388" y2="170" stroke="var(--text)" stroke-width="1.5"/>
+<line x1="356" y1="180" x2="388" y2="180" stroke="var(--text)" stroke-width="1.5"/>
+<line x1="372" y1="180" x2="372" y2="210" stroke="var(--border-strong)" stroke-width="1"/>
+<text x="344" y="179" font-size="12" text-anchor="end" fill="var(--muted)">C</text>
+
+<line x1="372" y1="110" x2="470" y2="110" stroke="var(--border-strong)" stroke-width="1"/>
+<line x1="470" y1="110" x2="470" y2="136" stroke="var(--border-strong)" stroke-width="1"/>
+<rect x="462" y="136" width="16" height="46" rx="2" fill="var(--card)" stroke="var(--text)" stroke-width="1"/>
+<line x1="470" y1="182" x2="470" y2="210" stroke="var(--border-strong)" stroke-width="1"/>
+<text x="488" y="163" font-size="12" fill="var(--muted)">R</text>
+
+<line x1="60" y1="110" x2="60" y2="210" stroke="var(--border-strong)" stroke-width="0"/>
+<text x="60" y="242" font-size="11.5" fill="var(--faint)">若要保留输入扰动：同一受控源改为 (Vg·d̂ + D·v̂g)，一个源、两个控制量</text>
+<text x="330" y="262" font-size="11.5" text-anchor="middle" fill="var(--faint)">—— 剩下的工作 = 大一电阻网络的分压 ——</text>
+</svg>
+<figcaption>读图顺序：受控源 V<sub>g</sub>·d̂（在电感支路最前端）→ 经 sL 与 Z<sub>p</sub> 分压 → v̂<sub>o</sub>。<b>没有矩阵、没有状态方程，一个受控源 + 无源网络</b>。令 d̂ = 0、受控源换成 D·v̂g 得 G<sub>vg</sub>；从输出节点注入测试电流、所有源置零得 Z<sub>out</sub>——三条传函共用同一个分母。</figcaption>
+</figure>
+
+<p>从受控源出发，输出节点 v̂<sub>o</sub> 恰好是 <i>sL</i> 与 <i>Z</i><sub>p</sub> 的分压点（<i>Z</i><sub>p</sub> = <i>R</i> ∥ (<i>r</i><sub>C</sub> + 1/<i>sC</i>)，即电容支路与负载的并联）：</p>
+<div class="eq">
+<i>v̂</i><sub>o</sub> = <i>V</i><sub>g</sub>·<i>d̂</i> · <span style="display:inline-block;vertical-align:middle;text-align:center;font-size:13px;line-height:1.5;"><i>Z</i><sub>p</sub><br><span style="display:inline-block;border-top:1px solid currentColor;padding-top:2px;"><i>sL</i> + <i>Z</i><sub>p</sub></span></span>&nbsp;&nbsp;&nbsp;&nbsp;⇒&nbsp;&nbsp;&nbsp;&nbsp;<i>G</i><sub>vd</sub>(<i>s</i>) = <i>v̂</i><sub>o</sub>/<i>d̂</i> = <i>V</i><sub>g</sub> · <i>Z</i><sub>p</sub> / ( <i>sL</i> + <i>Z</i><sub>p</sub> )
+</div>
+<p>同一张图、换一种激励，另两条传函就地产生：<strong>令 d̂ = 0、受控源换成 D·v̂<sub>g</sub></strong> → 得 G<sub>vg</sub>（6.2 节）；<strong>所有源置零、从输出节点注入测试电流</strong> → 得 Z<sub>out</sub>（6.3 节）。三条传函分母相同，因为它们看的是同一个无源网络。完整化简成标准二阶形式的过程在第 06 章展开。</p>
+
+<h4>第 5 步：输入侧的受控电流源（本图为何省略）</h4>
+<p>5.3 的第二条端口方程 <i>i</i><sub>sw</sub> = <i>d</i>·<i>i</i><sub>L</sub> 线性化后是 <i>î</i><sub>sw</sub> = <i>D</i>·<i>î</i><sub>L</sub> + <i>I</i><sub>L</sub>·<i>d̂</i>，画出来应是接在输入回路的受控电流源（表示"开关从输入抽取的电流"）。<strong>求 G<sub>vd</sub>、G<sub>vg</sub>、Z<sub>out</sub> 时它不在输出分压路径上，所以本图省略</strong>；只有分析输入阻抗、输入电流纹波、或前级 EMI 滤波器交互（电流源正是《电路与系统分析》1.2 节"负电阻效应"的源头）时，才需要把它接回图里。</p>
+
+<div class="note ok">
+  <p><b>画完必做：静态自洽检验</b>。交流图虽然置零了直流源，但下笔前应先用平均电路（大信号）核对一遍静态：v<sub>sw</sub> 平均 = D·V<sub>g</sub> → V<sub>o</sub> = D·V<sub>g</sub>，与 3.3 节表格一致 ✓。<b>这一步能当场抓住"受控源极性接反、位置放错"这类错误</b>——极性反了，直流都对不上；直流对上了，交流图的拓扑才可信。</p>
+</div>
+
+<h3 id="ch05-6">5.6 建模方法族对比</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:19%">方法</th><th style="width:29%">产出物</th><th style="width:24%">对开关信息的处理</th><th>适用场景</th></tr></thead>
+<tbody>
+<tr><td>状态空间平均 SSA</td><td>平均 / 小信号状态方程与矩阵</td><td>完全抹平</td><td>教科书式推导；多状态、状态反馈设计；控制器综合</td></tr>
+<tr><td>弧平均 / 开关网络平均</td><td>平均等效电路（大信号）</td><td>完全抹平，但保留电路形态</td><td>SIMPLIS 平均模型仿真；快速搭系统级模型</td></tr>
+<tr><td>PWM switch（Vorperian）</td><td>三端电路模型（大 / 小信号各一套）</td><td>完全抹平；CCM / DCM 统一</td><td>手画小信号电路读传函；SPICE AC；工程设计主力</td></tr>
+<tr><td>描述函数 / FRA</td><td>频率响应数据（非解析式）</td><td>保留基波</td><td>谐振变换器、SSA 失效场合、实测频响辨识</td></tr>
+<tr><td>采样数据模型（区间解拼接）</td><td>z 域 / 周期采样模型</td><td>完整保留（含边带、混叠）</td><td>数字控制、f<sub>c</sub> 逼近 f<sub>sw</sub>/2、电流模式高频行为（8.5）</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note ok">
+  <p><b>五派殊途同归的部分</b>：在 f ≪ f<sub>sw</sub>/2 的低频段，所有平均类方法给出的 G<sub>vd</sub> 完全一致——它们平均的是同一个东西（伏秒与电荷）。分歧从 f<sub>sw</sub>/2 附近开始：只有采样数据模型还记得开关。所以<b>选方法先问频率范围，再问工作量</b>。</p>
+</div>
+<h2 id="ch06"><span class="num">06</span>传递函数族：G<sub>vd</sub>、G<sub>vg</sub>、Z<sub>out</sub></h2>
+<p>本章把第 05 章画出的线性电路解干净，并以 Buck 为载体把三条传函一次推完。方法（分压 / 阻抗串并联）是大一电路知识，<strong>难的是记住每条传函"另一输入置零"的条件，以及读图时不被 Q 值骗到</strong>。</p>
+
+<h3 id="ch06-1">6.1 G<sub>vd</sub>：控制到输出</h3>
+<p>对 5.5 节的等效电路，受控源 <i>V</i><sub>g</sub>·<i>d̂</i> 经 <i>sL</i> 与 <i>Z</i><sub>p</sub> = <i>R</i> ∥ (<i>r</i><sub>C</sub> + 1/<i>sC</i>) 分压。代入整理（分子分母同除 <i>R</i>）：</p>
+<div class="eq">
+<i>G</i><sub>vd</sub>(<i>s</i>) = <i>V</i><sub>g</sub> · (1 + <i>s r</i><sub>C</sub><i>C</i>) / [ 1 + <i>s</i>(<i>L</i>/<i>R</i> + <i>r</i><sub>C</sub><i>C</i>) + <i>s</i>²<i>LC</i>(1 + <i>r</i><sub>C</sub>/<i>R</i>) ]
+</div>
+<div class="formula-grid">
+  <div class="fc">
+    <div class="h">标准二阶形式</div>
+    <div class="e"><i>G</i><sub>vd</sub> = <i>G</i><sub>do</sub>(1 + <i>s</i>/ω<sub>z</sub>) / [1 + <i>s</i>/(<i>Q</i>ω<sub>0</sub>) + (<i>s</i>/ω<sub>0</sub>)²]</div>
+  </div>
+  <div class="fc">
+    <div class="h">直流增益与 ESR 零点</div>
+    <div class="e"><i>G</i><sub>do</sub> = <i>V</i><sub>g</sub>&nbsp;&nbsp;&nbsp;ω<sub>z</sub> = 1/(<i>r</i><sub>C</sub><i>C</i>)</div>
+  </div>
+  <div class="fc">
+    <div class="h">双重极点（习惯叫法）</div>
+    <div class="e">ω<sub>0</sub> = 1/√[<i>LC</i>(1 + <i>r</i><sub>C</sub>/<i>R</i>)] ≈ 1/√(<i>LC</i>)&nbsp;&nbsp;——严格说是<b>一对共轭复极点</b>，仅 Q = 0.5 时才真正重合为"重根"</div>
+  </div>
+  <div class="fc">
+    <div class="h">品质因数（精确 / 近似）</div>
+    <div class="e"><i>Q</i> = √[<i>LC</i>(1+<i>r</i><sub>C</sub>/<i>R</i>)] / (<i>L</i>/<i>R</i> + <i>r</i><sub>C</sub><i>C</i>)；<i>r</i><sub>C</sub> ≪ <i>R</i> 时 ≈ √(<i>LC</i>)/(<i>L</i>/<i>R</i> + <i>r</i><sub>C</sub><i>C</i>)——轻载 <i>R</i>↑ ⇒ <i>Q</i>↑，谐振峰抬高</div>
+  </div>
+</div>
+<p>读法：<b>分子只有一个 ESR 零点，分母一对 LC 极点</b>。Buck 的直流增益是 <i>V</i><sub>g</sub> 而不是 <i>V</i><sub>o</sub>——"占空比动 1%，电感左端电压动 1% 的 V<sub>g</sub>"，与输出纹多少无关。这是 Buck 与 Boost / Buck-Boost 的第一处本质差别（后两者 <i>G</i><sub>do</sub> 含变比放大，见 7.3）。</p>
+
+<h3 id="ch06-2">6.2 G<sub>vg</sub>：线到输出（音频隔离度）</h3>
+<p>同一个电路，令 <i>d̂</i> = 0、受控源换成 <i>D</i>·<i>v̂</i><sub>g</sub>（5.4 节表格第一行的第二项），分压照旧：</p>
+<div class="eq">
+<i>G</i><sub>vg</sub>(<i>s</i>) = <i>v̂</i><sub>o</sub>/<i>v̂</i><sub>g</sub> |<sub><i>d̂</i>=0</sub> = <i>D</i> · (1 + <i>s r</i><sub>C</sub><i>C</i>) / [ 同 6.1 分母 ]&nbsp;&nbsp;&nbsp;&nbsp;⇒&nbsp;&nbsp;&nbsp;&nbsp;<i>G</i><sub>vg</sub> = (<i>D</i>/<i>V</i><sub>g</sub>)·<i>G</i><sub>vd</sub>
+</div>
+<p>两条重要结论：</p>
+<ul>
+<li><strong>Buck 的开环线调整率与占空比同轨</strong>：直流处 |<i>G</i><sub>vg</sub>| = <i>D</i> = <i>V</i><sub>o</sub>/<i>V</i><sub>g</sub>。输入纹波原封不动按变比漏到输出——闭环之后才靠环路增益压下去（音频隔离度 ≈ 1/|T|，见《电路与系统分析》1.3）。</li>
+<li><strong>比例关系 G<sub>vg</sub> = (D/V<sub>g</sub>)·G<sub>vd</sub> 是 Buck 特有</strong>。Boost 不成立——它的 G<sub>vg</sub> 与 G<sub>vd</sub> 分子结构不同（7.3 节对比）。把某个拓扑的传函族记成"通用公式"是高频误区（见第 10 章第 1 条）。</li>
+</ul>
+
+<h3 id="ch06-3">6.3 Z<sub>out</sub>：输出阻抗</h3>
+<p>令 <i>d̂</i> = 0、<i>v̂</i><sub>g</sub> = 0（受控源短路），从输出节点看进去。注意此时受控源短路意味着<strong>电感左端交流接地</strong>——输出节点到地共有<b>三条并联支路</b>：负载 <i>R</i>、电感 <i>sL</i>、电容支路 <i>r</i><sub>C</sub> + 1/<i>sC</i>：</p>
+<div class="eq">
+<i>Y</i><sub>out</sub> = 1/<i>R</i> + 1/<i>sL</i> + 1/(<i>r</i><sub>C</sub> + 1/<i>sC</i>)&nbsp;&nbsp;→&nbsp;&nbsp;<i>Z</i><sub>out</sub>(<i>s</i>) = <i>sLR</i>(1 + <i>s r</i><sub>C</sub><i>C</i>) / [ <i>R</i> + <i>s</i>(<i>L</i> + <i>R r</i><sub>C</sub><i>C</i>) + <i>s</i>²<i>LC</i>(<i>R</i> + <i>r</i><sub>C</sub>) ]
+</div>
+<div class="note">
+  <p><b>分子里的 <i>sL</i> 因子是关键</b>：直流处电感就是一根导线，把输出短到（交流地意义上的）输入端——所以 <b><i>Z</i><sub>out</sub>(0) = 0</b>（精确说只剩 DCR），低频段 |<i>Z</i><sub>out</sub>| ≈ ω<i>L</i> 以 +20 dB/dec 上升。到 ω<sub>0</sub> 附近，<i>sL</i> 与电容支路发生<b>并联谐振（反谐振），阻抗出现峰值</b>——理想时趋于无穷，实际被 <i>R</i> 与 <i>r</i><sub>C</sub> 夹住（6.4 数值：≈ 1.4 Ω）。再往上电容接管，落到 ≈ <i>r</i><sub>C</sub> 平台。物理图像：<b>谐振附近恰是 LC 对"分流"最不积极的频段，负载注入的扰动电流最难被旁路</b>——这与直觉一致：LC 谐振区正是功率级对负载扰动最敏感的地方。</p>
+</div>
+<p>三条实用推论：① 开环 |<i>Z</i><sub>out</sub>| 低频趋零、谐振处起峰，<b>闭环后 = 本式 ÷ (1+T)</b>，低频被环路增益进一步压扁，残余峰出现在 |T| 变小的 f<sub>c</sub> 附近——负载瞬态跌落就由它定价；② 多相并联的均流互扰分析以 <i>Z</i><sub>out</sub> 为界面；③ 它与输入侧的"负电阻"（《电路与系统分析》1.2）是同一台变换器在两个端口的两张脸。</p>
+
+<h3 id="ch06-4">6.4 三条传函的 Bode 读法</h3>
+<p>取一组贯穿本章的数值：<i>V</i><sub>g</sub> = 12 V、<i>V</i><sub>o</sub> = 6 V（<i>D</i> = 0.5）、<i>L</i> = 10 μH、<i>C</i> = 100 μF、<i>r</i><sub>C</sub> = 20 mΩ、<i>R</i> = 2 Ω、<i>f</i><sub>sw</sub> = 500 kHz。</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:30%">特征量</th><th style="width:40%">计算</th><th>数值</th></tr></thead>
+<tbody>
+<tr><td>G<sub>vd</sub> 直流增益</td><td>20 log V<sub>g</sub></td><td>21.6 dB（12 V）</td></tr>
+<tr><td>G<sub>vg</sub> 直流增益</td><td>20 log D</td><td>−6 dB（0.5）</td></tr>
+<tr><td>f<sub>0</sub>（双重极点）</td><td>1/(2π√(LC)) = 1/(2π√(10μ × 100μ))</td><td>5.03 kHz</td></tr>
+<tr><td>Q</td><td>√[LC(1+r<sub>C</sub>/R)]/(L/R + r<sub>C</sub>C) = 31.8μs/7μs（理想式 R√(C/L)=6.3 是上限）</td><td><b>4.5</b>（谐振峰 ≈ +13 dB——ESR 阻尼掉了近一半峰高）</td></tr>
+<tr><td>f<sub>z,ESR</sub></td><td>1/(2π r<sub>C</sub>C) = 1/(2π × 20mΩ × 100μF)</td><td>79.6 kHz</td></tr>
+<tr><td>Z<sub>out</sub> 低频段</td><td>电感把输出短到交流地：|Z| ≈ ωL（100 Hz 处 6.3 mΩ）</td><td>DC → 0，+20 dB/dec 上升</td></tr>
+<tr><td>Z<sub>out</sub> 谐振峰</td><td>f<sub>0</sub> 处 sL 与电容支路并联谐振，被 r<sub>C</sub>、R 夹住</td><td>≈ 1.4 Ω（MATLAB 计 1.43 Ω @ 5.0 kHz）</td></tr>
+<tr><td>Z<sub>out</sub> 高频平台</td><td>电容接管后只剩 ESR：≈ r<sub>C</sub></td><td>20 mΩ</td></tr>
+<tr><td>平均化校验</td><td>f<sub>sw</sub>/f<sub>0</sub>；模型有效期</td><td>99 ≫ 10 ✓；f &lt; 250 kHz</td></tr>
+</tbody>
+</table>
+</div>
+
+<figure>
+<img src="images/bode-buck-gvd-gvg.png" alt="Buck 功率级 Gvd 与 Gvg 的真实 Bode 图（MATLAB 计算）" style="max-width:90%;">
+<figcaption><b>真实计算曲线（MATLAB 按 6.1–6.2 公式绘制，非手绘示意，脚本 <a href="bode64.m" target="_blank">bode64.m</a>）</b>：G<sub>vd</sub>（蓝实线）与 G<sub>vg</sub>（灰虚线）在 V<sub>g</sub> = 12 V、D = 0.5、L = 10 μH、C = 100 μF、r<sub>C</sub> = 20 mΩ、R = 2 Ω 下计算——两条只差常数比例（Buck 特性），共用同一分母。绿色圆点标出 20 kHz 读数点（−1.6 dB / −162.5°），绿色点线为 PM 60° 对应的 ∠T = −120° 参考线；红色虚线是平均模型可信边界（f<sub>sw</sub>/2 = 250 kHz，见 1.3）。注意谐振峰高度由 Q 决定，而 Q 里有 R——<b>轻载时这条蓝线整段抬头，是"满载稳定、轻载振铃"的根源</b>（本例 ESR 把 Q 从理想 6.3 阻尼到 4.5，峰高 +13 dB）。</figcaption>
+</figure>
+
+<figure>
+<img src="images/bode-buck-zout.png" alt="Buck 开环输出阻抗 Zout 的真实 Bode 图（MATLAB 计算）" style="max-width:90%;">
+<figcaption><b>真实计算曲线（MATLAB 按修正后的 6.3 公式绘制，脚本 <a href="bode64.m" target="_blank">bode64.m</a>）</b>：注意形状与 G<sub>vd</sub> 恰好"互补"——低频段 |Z<sub>out</sub>| ≈ ωL 以 +20 dB/dec 上升（直流处电感把输出短到交流地，Z→0）；f<sub>0</sub> = 5.03 kHz 处 sL 与电容支路<b>并联谐振，阻抗起峰 ≈ 1.4 Ω</b>（理想无阻尼时趋于无穷，实际被 r<sub>C</sub>、R 夹住）；再往上电容接管，落到 ≈ r<sub>C</sub> = 20 mΩ 平台。相位从 +90°（感性）经 0°（谐振）转到 −90°（容性）。<b>闭环输出阻抗 = 本图 ÷ (1+T)</b>：低频被环路增益压得更低，负载瞬态的最坏跌落出现在 |T| 变小的 f<sub>c</sub> 附近（用途见下文"扰动账本"）。</figcaption>
+</figure>
+<h4>Bode 图的逐段读法：每一段在告诉你什么</h4>
+<p>拿到一张功率级 Bode 图，正确姿势不是"看个大概形状"，而是<strong>按转折频率把曲线切成段，逐段问"这段对环路设计意味着什么"</strong>。以上面两张真实计算曲线（Buck 数值）为例：</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:17%">频段</th><th style="width:30%">幅频 / 相频形状</th><th>对设计的含义</th></tr></thead>
+<tbody>
+<tr><td>f ≪ f<sub>0</sub><br>（直流 ~ 5 kHz）</td><td>|G<sub>vd</sub>| ≈ 21.6 dB 平坦；相位 ≈ 0°</td><td>植物是"纯增益"，环路增益在这段几乎由补偿器说了算。<b>低频增益做多大，稳态精度和音频隔离度就是多大</b>——这段的 T(f) 直接决定终值定理意义上的稳态误差。</td></tr>
+<tr><td>f ≈ f<sub>0</sub>（5.03 kHz）</td><td>Q 峰 +13 dB；相位从 −90° 坠向 −180°，Q 越高坠得越陡</td><td><b>整条曲线最危险的区段</b>。穿越若落在峰上：增益被抬高 13 dB（fc 被迫右移）、相位正处悬崖（PM 崩盘）。补偿器零点通常就摆在这里抵消双极。</td></tr>
+<tr><td>f<sub>0</sub> ~ f<sub>z</sub><br>（5k ~ 80 kHz）</td><td>−40 dB/dec；相位平台 ≈ −180°</td><td>这是选穿越频率的主战场。−180° 平台意味着<b>补偿器必须独自扛起全部相位预算</b>：想要 PM 60°，∠T = −120°，补偿器需提供 +60° 绝对相位 → 只有 Type III 够（《电路与系统分析》3.2 节）。</td></tr>
+<tr><td>f<sub>z</sub> ~ f<sub>sw</sub>/2<br>（80k ~ 250 kHz）</td><td>ESR 零点把斜率拉回 −20 dB/dec；相位回收到 −90° 附近</td><td>形状"变友好"了，但<b>不许把设计押在这段</b>——ESR 随温度、频率、批次漂移，零点位置是借来的，不是自己的（读图三戒②）。</td></tr>
+<tr><td>f &gt; f<sub>sw</sub>/2</td><td>——</td><td>不再采信。误差本来就随 f/f<sub>sw</sub> 单调增大，到 f<sub>sw</sub>/2 附近已不可控；而且对"每周期采样一次"的环节（电流模式、数字控制），这里正是奈奎斯特频率——边带混叠、次谐波、采样极点对都锚定在此（8.5 节）。</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note">
+  <p><b>现场读一个点（示范完整流程，对应图中绿色圆点）</b>：取 f = 20 kHz。ω/ω<sub>0</sub> = 3.97，分母 |1 − 15.8 + j0.88| ≈ 14.8（虚部 = ω/ω<sub>0</sub>/Q，用 ESR 阻尼后的 Q = 4.5），分子 ESR 项 |1 + j0.25| ≈ 1.03 → <b>|G<sub>vd</sub>| ≈ 12 × 1.03/14.8 ≈ 0.83（−1.6 dB）</b>；相位 = −176.6°（双极）+ 14.1°（ESR 零点）= <b>−162.5°</b>，与 MATLAB 精确值一致。若把 fc 定在 20 kHz：需要 ∠T = −120°，补偿器绝对相位 = −120 − (−162.5) = <b>+42.5°</b> → Type II 上限约 −6° 到 −20°，做不到；Type III（上限 +70°）可以。这一个小数点的读法，就走完了"选 fc → 定补偿器类型"的完整决策。</p>
+</div>
+
+<h4>三条传函有什么用：输出扰动账本的三栏</h4>
+<p>三条传函不是三个孤立的练习，而是同一本账的三栏——<strong>任何时刻输出电压的波动，都等于三个扰动各乘各的传函再叠加</strong>：</p>
+<div class="eq">
+<i>v̂</i><sub>o</sub> = <i>G</i><sub>vd</sub>·<i>d̂</i>&nbsp;&nbsp;+&nbsp;&nbsp;<i>G</i><sub>vg</sub>·<i>v̂</i><sub>g</sub>&nbsp;&nbsp;−&nbsp;&nbsp;<i>Z</i><sub>out</sub>·<i>î</i><sub>o</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">控制扰动 + 输入扰动 + 负载扰动；闭环时后两项还要除以 (1+T)</span>
+</div>
+<div class="card">
+<table>
+<thead><tr><th style="width:14%">传函</th><th style="width:22%">对应产品规格里的哪一项</th><th style="width:30%">开环 → 闭环的关系</th><th>典型用法</th></tr></thead>
+<tbody>
+<tr><td>G<sub>vd</sub></td><td>动态响应（带宽、阶跃恢复）</td><td>它就是环路里的"被控对象"，闭环特征方程 1+T=0 由它参与构成</td><td>选 fc、算相位缺口、定 Type II/III——补偿器设计的全部输入（《电路与系统分析》第 5、6 章）</td></tr>
+<tr><td>G<sub>vg</sub></td><td>音频隔离度 / 线性瞬态</td><td>闭环漏过来 ≈ |G<sub>vg</sub>|/|T|（低频段 T 大时近似 1/|T|·G<sub>vg</sub>）</td><td>① 前级是 PFC 时，算 100/120 Hz 输入纹波有多少漏到输出，反推环路低频增益要多高；② 评估电池电压斜坡、母线波动下的输出漂移；③ 判断需不需要前级滤波器</td></tr>
+<tr><td>Z<sub>out</sub></td><td>负载瞬态跌落 Δv、恢复时间</td><td>闭环 Z<sub>out,CL</sub> = Z<sub>out,OL</sub>/(1+T)——低频被环路增益压到毫欧级，<b>峰值出现在 |T| 变小的 fc 附近</b></td><td>① 负载阶跃跌落估算：Δv ≈ Δi × |Z<sub>out,CL</sub>|<sub>peak</sub>，直接对规格书"50A/μs 阶跃跌落 &lt; 5%"负责；② 多相并联的均流与互扰分析；③ 下游变换器的负电阻交互（Middlebrook 判据用的正是输入侧同款逻辑）</td></tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li><strong>一张图回答三类问题</strong>：审电路时，"环路稳不稳"查 G<sub>vd</sub>，"输入脏不脏"查 G<sub>vg</sub>，"负载跳不跳"查 Z<sub>out</sub>。只交 G<sub>vd</sub> 的建模是不完整的——第 10 章误区 7 说的就是"四条传函当一条用"。</li>
+<li><strong>为什么它们共用分母</strong>：三条传函看的是同一个无源网络（L、C、r<sub>C</sub>、R），区别只在激励从哪个端口进。所以谐振频率、Q 值、稳定性边界对三者同时成立——<b>一处谐振，三处发病</b>：G<sub>vd</sub> 的峰是环路的相位悬崖，G<sub>vg</sub> 的峰是输入纹波的放大点（环路带宽压不住谐振时，工频纹波反而被 LC 谐振放大），Z<sub>out</sub> 的峰则是开环下负载扰动的最敏感频点（闭环后由环路增益压低，残余峰在 f<sub>c</sub> 附近）。</li>
+<li><strong>闭环视角的统一</strong>：环路设计的全部工作，本质是用 G<sub>c</sub>·F<sub>m</sub>·H 塑造 T(s)，让这本账的三栏同时达标——带宽（G<sub>vd</sub> 栏）、隔离度（G<sub>vg</sub> 栏）、瞬态（Z<sub>out</sub> 栏）。三者都随工作点变，所以都要在最恶劣工况复核（1.4 节的"工作点契约"）。</li>
+</ul>
+
+<div class="note warn">
+  <p><b>读图三戒</b>：① 谐振峰附近的相位跌落比 −40 dB/dec 斜率暗示的更快，按 Q 修正（Q 越大越陡，高 Q 时几乎垂直）；② ESR 零点的位置<em>不属于安全预算</em>——它会随温度、频率、老化移动（《电路与系统分析》误区 3）；③ 截止频率 f<sub>sw</sub>/2 之外曲线一律不采信，那里属于采样数据模型的领地（8.5 节）。</p>
+</div>
+
+<h2 id="ch07"><span class="num">07</span>完整算例：24 V → 48 V Boost</h2>
+<p>本章是全文的"毕业考试"：规格 → 区间方程 → 平均 → 直流 → 小信号 → 传递函数 → Bode → 与仿真对拍，每一步都给出可复算的数字。选 Boost 而不再算一遍 Buck，是因为它同时演示两件事：<b>占空比乘在状态变量上的乘积项线性化</b>，以及<b>右半平面零点的诞生</b>。</p>
+
+<h3 id="ch07-1">7.1 规格与直流工作点</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:30%">项目</th><th style="width:26%">取值</th><th>备注</th></tr></thead>
+<tbody>
+<tr><td>输入 / 输出</td><td>24 V → 48 V / 2 A（96 W）</td><td>汽车 12/24 V 系统升压常见点</td></tr>
+<tr><td>开关频率 f<sub>sw</sub></td><td>100 kHz（T = 10 μs）</td><td>—</td></tr>
+<tr><td>L / C / r<sub>C</sub></td><td>150 μH / 220 μF / 50 mΩ</td><td>R = V<sub>o</sub>/I<sub>o</sub> = 24 Ω</td></tr>
+<tr><td>变比与占空比</td><td>M = 2 ⇒ D′ = V<sub>g</sub>/V<sub>o</sub> = 0.5，D = 0.5</td><td>直流模型：V<sub>o</sub> = V<sub>g</sub>/D′</td></tr>
+<tr><td>电感电流</td><td>I<sub>L</sub> = I<sub>o</sub>/D′ = 4 A</td><td>亦 = V<sub>g</sub>/(R·D′²) ✓ 功率平衡</td></tr>
+<tr><td>电流纹波</td><td>Δi<sub>L</sub> = V<sub>g</sub>D/(Lf<sub>sw</sub>) = 24×0.5/(150μ×100k)</td><td>0.8 A（20%；CCM 判据看电感谷值：I<sub>L</sub> − Δi<sub>L</sub>/2 = 4 − 0.4 = 3.6 A &gt; 0 ✓）</td></tr>
+<tr><td>电压纹波</td><td>电容充放电分量 Δv<sub>o</sub> ≈ I<sub>o</sub>D/(C f<sub>sw</sub>) = 2×0.5/(220μ×100k)</td><td>≈ 45 mV；<b>还要叠加 ESR 跳变</b> (I<sub>L</sub>−I<sub>o</sub>)·r<sub>C</sub> = 2A×50mΩ ≈ 100 mV → 实际纹波以 ESR 尖峰为主（合计 ≈ 0.1 V，0.2%）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch07-2">7.2 分段 → 平均 → 线性化</h3>
+<p><b>分段</b>（状态 [<i>i</i><sub>L</sub>, <i>v</i><sub>C</sub>]，先按理想电容，ESR 在 7.4 补上）：</p>
+<div class="eq">
+区间 1（开关导通，d）：&nbsp;<i>L</i> d<i>i</i><sub>L</sub>/d<i>t</i> = <i>v</i><sub>g</sub>&nbsp;&nbsp;&nbsp;&nbsp;<i>C</i> d<i>v</i><sub>C</sub>/d<i>t</i> = −<i>v</i><sub>C</sub>/<i>R</i>
+</div>
+<div class="eq">
+区间 2（二极管导通，d′）：&nbsp;<i>L</i> d<i>i</i><sub>L</sub>/d<i>t</i> = <i>v</i><sub>g</sub> − <i>v</i><sub>C</sub>&nbsp;&nbsp;&nbsp;&nbsp;<i>C</i> d<i>v</i><sub>C</sub>/d<i>t</i> = <i>i</i><sub>L</sub> − <i>v</i><sub>C</sub>/<i>R</i>
+</div>
+<p><b>平均</b>（与 Buck 不同，Boost 两个矩阵都在切换）：</p>
+<div class="eq">
+<i>L</i> d<i>i</i><sub>L</sub>/d<i>t</i> = <i>v</i><sub>g</sub> − <i>d</i>′·<i>v</i><sub>C</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>C</i> d<i>v</i><sub>C</sub>/d<i>t</i> = <i>d</i>′·<i>i</i><sub>L</sub> − <i>v</i><sub>C</sub>/<i>R</i>
+</div>
+<p><b>线性化</b>：代入 <i>d</i>′ = <i>D</i>′ − <i>d̂</i>、各量 = 大写 + hat，按 4.2 分拣。直流项消掉给出 V<sub>C</sub> = V<sub>g</sub>/D′、I<sub>L</sub> = V<sub>g</sub>/(RD′²)（7.1 已核）；一阶项：</p>
+<div class="eq">
+<i>L</i> d<i>î</i><sub>L</sub>/d<i>t</i> = <i>v̂</i><sub>g</sub> − <i>D</i>′<i>v̂</i><sub>C</sub> + <i>V</i><sub>C</sub>·<i>d̂</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>C</i> d<i>v̂</i><sub>C</sub>/d<i>t</i> = <i>D</i>′<i>î</i><sub>L</sub> − <i>I</i><sub>L</sub>·<i>d̂</i> − <i>v̂</i><sub>C</sub>/<i>R</i>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">二阶项 d̂·v̂C 丢弃</span>
+</div>
+<p>用 4.3 的 B̂₂ 通用公式验算 d̂ 项：(A₁−A₂)X = (V<sub>C</sub>/L, −I<sub>L</sub>/C)ᵀ——乘回各自行的 L、C 系数，正是两个一阶方程里的 +V<sub>C</sub>·d̂ 与 −I<sub>L</sub>·d̂；(B₁−B₂)V<sub>g</sub> = 0（Boost 两区间的 B 矩阵相同）。逐项吻合 ✓。<strong>这就是 5.4 节 PWM switch "串联电压源 + 并联电流源"的状态方程版本</strong>。</p>
+
+<h3 id="ch07-3">7.3 解出 G<sub>vd</sub>：RHP 零点的诞生</h3>
+<p>零初始条件取拉普拉斯，令 <i>v̂</i><sub>g</sub> = 0。从第一式 î<sub>L</sub> = (<i>V</i><sub>C</sub>d̂ − <i>D</i>′v̂<sub>C</sub>)/(<i>sL</i>)，代入第二式整理：</p>
+<div class="eq">
+<i>v̂</i><sub>C</sub>·[ <i>s</i>²<i>LC</i> + <i>sL</i>/<i>R</i> + <i>D</i>′² ] = <i>d̂</i>·[ <i>D</i>′<i>V</i><sub>C</sub> − <i>sL I</i><sub>L</sub> ]
+</div>
+<div class="eq">
+<i>G</i><sub>vd</sub>(<i>s</i>) = (<i>V</i><sub>g</sub>/<i>D</i>′²) · ( 1 − <i>s</i>/<i>s</i><sub>z</sub> ) / ( 1 + <i>s</i>/(<i>Q</i>ω<sub>0</sub>) + (<i>s</i>/ω<sub>0</sub>)² )
+</div>
+<div class="formula-grid">
+  <div class="fc"><div class="h">直流增益（含变比放大）</div><div class="e">G<sub>do</sub> = <i>V</i><sub>g</sub>/<i>D</i>′² = <i>V</i><sub>o</sub>/<i>D</i>′</div></div>
+  <div class="fc"><div class="h">双重极点（折算后上移）</div><div class="e">ω<sub>0</sub> = <i>D</i>′/√(<i>LC</i>)</div></div>
+  <div class="fc"><div class="h">品质因数</div><div class="e"><i>Q</i> = <i>R D</i>′√(<i>C</i>/<i>L</i>)</div></div>
+  <div class="fc"><div class="h">右半平面零点（分子负号）</div><div class="e">ω<sub>rhpz</sub> = <i>R D</i>′²/<i>L</i>&nbsp;&nbsp;&nbsp;<b>s<sub>z</sub> = +ω<sub>rhpz</sub> &gt; 0</b></div></div>
+</div>
+<p><strong>负号就是非最小相位</strong>：占空比瞬间增大 → 二极管导电时间 d′ 变短 → 注入输出电容的电流先跌 → 输出电压先向下走，之后才随电感能量上升恢复。"响应与指令方向相反起步"，时域上表现为反跳（undershoot），频域上表现为：<b>幅频按零点正常抬升（+20 dB/dec），相频却持续滞后（−90°）</b>。幅相符号相反，这就是 RHP 零点无法用极点抵消的根本原因——抵消它的极点在右半平面，本身就是不稳定的。</p>
+<div class="note warn">
+  <p><b>Buck-Boost 与反激（CCM）的结构与此完全同构</b>：同样存在 RHP 零点，闭式系数随拓扑略有出入，但标度律一致——ω<sub>rhpz</sub> ∝ <i>R</i>(1−<i>D</i>)²/<i>L</i>（反激以励磁电感为 <i>L</i>、反射负载为 <i>R</i>，系数需按匝比折算）。<b>要背的是标度律和"谁在什么方向推它"，系数到了现场按同一方法现推</b>。<b>在 CCM 下</b>，Boost、Buck-Boost 与反激的控制到输出传函都存在这个零点（进入 DCM 后它会消失，见 9.3）；Buck 没有，因为它的电感每一拍都在直接给输出送货。</p>
+</div>
+<p>同样流程令 <i>d̂</i> = 0 得 G<sub>vg</sub>：分母与 G<sub>vd</sub> 完全相同，分子为 <i>D</i>′（无零点）：</p>
+<div class="eq">
+<i>G</i><sub>vg</sub>(<i>s</i>) = (1/<i>D</i>′) / ( 1 + <i>s</i>/(<i>Q</i>ω<sub>0</sub>) + (<i>s</i>/ω<sub>0</sub>)² )&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">直流增益 1/D′ = Vo/Vg ✓；与 Gvd 不成简单比例——Buck 的"比例律"在 Boost 失效</span>
+</div>
+
+<h3 id="ch07-4">7.4 代入数值</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:32%">特征量</th><th style="width:42%">计算</th><th>数值</th></tr></thead>
+<tbody>
+<tr><td>G<sub>vd</sub> 直流增益</td><td>V<sub>g</sub>/D′² = 24/0.25</td><td>96（39.7 dB）</td></tr>
+<tr><td>f<sub>0</sub></td><td>D′/(2π√(LC)) = 0.5/(2π√(150μ × 220μ))</td><td>438 Hz</td></tr>
+<tr><td>Q 与谐振峰</td><td>R·D′·√(C/L) = 24×0.5×1.211；峰 ≈ 20 log Q</td><td>14.5；+23 dB —— 阻尼极小！</td></tr>
+<tr><td>f<sub>rhpz</sub> = R D′²/(2πL)</td><td>24 × 0.25/(2π × 150μ)</td><td>6.37 kHz</td></tr>
+<tr><td>f<sub>z,ESR</sub> = 1/(2π r<sub>C</sub>C)</td><td>1/(2π × 50mΩ × 220μ)</td><td>14.5 kHz（高于 frhpz，帮不了忙）</td></tr>
+<tr><td>带宽硬上限 f<sub>c</sub> ≤ f<sub>rhpz</sub>/3 ~ /5</td><td>6.37k / 3</td><td>≈ 2.1 kHz，本例取 1 kHz（7.6）</td></tr>
+<tr><td>平均化校验</td><td>f<sub>sw</sub>/f<sub>0</sub> = 100k/438</td><td>228 ≫ 10 ✓</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note warn">
+  <p><b>Q = 14.5 是本例最危险的数字</b>：Boost 的 Q 正比于负载电阻，轻载（R↑）时谐振峰还要抬高，438 Hz 处的 +23 dB 尖峰直接决定低频段环路增益形状。补偿器在 f<sub>0</sub> 以下的增益必须按"峰高 Q 倍"而非"平坦"来配，否则低频 GM 不足，启动或大阶跃时撞进谐振点就振给你看。这也是"只在满载测环路"翻车的又一来源。</p>
+</div>
+
+<figure>
+<img src="images/bode-boost-gvd.png" alt="Boost 算例 Gvd 与 Gvg 的真实 Bode 图（MATLAB 计算）" style="max-width:90%;">
+<figcaption><b>真实计算曲线（MATLAB 按 7.3 公式绘制，含 ESR 零点，脚本 <code>bode74.m</code>）</b>：这就是 Boost 的 Bode 签名——438 Hz 处 +23 dB 的 Q 峰近乎垂直地坠落；6.4 kHz 处 RHP 零点让幅频"刹车"（−40 → −20 dB/dec），相频却继续"漏水"（绿色圆点：f<sub>c</sub> = 1 kHz 处 27.3 dB / −183°，与 7.6 节核算一致）。<b>幅频抬头 + 相频滞后这对矛盾组合，就是非最小相位的身份证</b>。灰虚线是 G<sub>vg</sub>：与 G<sub>vd</sub> 共用分母（同一个谐振、同一个 Q），但分子干净、没有 RHPZ——7.3 节"同分母、不同分子"的结论在图上一眼可辨。红色虚线为模型有效期 f<sub>sw</sub>/2 = 50 kHz。</figcaption>
+</figure>
+
+<h3 id="ch07-5">7.5 与开关仿真和实测对拍</h3>
+<p>模型推导完不叫建模完成，<strong>交叉验证完成才叫</strong>。三步对拍，成本从低到高：</p>
+<div class="chain">
+  <div class="step">
+    <div class="n">1</div>
+    <div>
+      <div class="b">与解析自检对</div>
+      <div class="d">直流：V<sub>o</sub> = V<sub>g</sub>/D′ 与仿真稳态比（应 &lt; 0.5% 差，差别即寄生损耗）；纹波：7.1 的 0.8 A / 45 mV 与仿真波形量级对照。这一步排除"抄错系数、少除 2π"级别的低级错误。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">2</div>
+    <div>
+      <div class="b">与开关级仿真的频响对</div>
+      <div class="d">LTspice/PSIM 搭理想开关 Boost，用 FRA 法（占空比注入小正弦、扫频测输出）或 SIMPLIS 平均模型直接 AC 扫频，与解析 Bode 叠图。低频段应重合；<b>f<sub>sw</sub>/3 之后开始分叉属正常</b>——分叉点就是平均模型有效期的实测标定（下图）。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="n">3</div>
+    <div>
+      <div class="b">与样机实测对</div>
+      <div class="d">断开环路注入测 T(s)（方法见《电路与系统分析》5.4），扣除补偿器与 F<sub>m</sub>·H 反推功率级，对比三条线：模型 / 开关仿真 / 样机。偏差解释见下表。</div>
+    </div>
+  </div>
+</div>
+
+<figure>
+<svg viewBox="0 0 660 260" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>平均模型与开关级仿真频响对拍示意</title>
+<desc>幅频对比：低频段两条曲线重合，fsw/3 之后逐渐分叉，开关模型在 fsw/2 附近出现折叠与跌落，平均模型持续外推。竖虚线标注 fsw/3 与 fsw/2，分叉点即模型有效期标定。</desc>
+
+<line x1="90" y1="30" x2="90" y2="210" stroke="var(--border-strong)" stroke-width="0.8"/>
+<line x1="90" y1="210" x2="620" y2="210" stroke="var(--border-strong)" stroke-width="0.8"/>
+<text x="84" y="46" font-size="10.5" text-anchor="end" fill="var(--faint)">|G|</text>
+<text x="614" y="228" font-size="11" text-anchor="end" fill="var(--faint)">频率（对数）</text>
+
+<path d="M90 52 L 220 52 Q 228 54 234 84 L 380 164 L 455 196 L 540 212 L 620 220" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+<path d="M90 53 L 220 53 Q 228 56 234 88 L 380 170 L 440 198 Q 470 208 488 218 L 520 240 Q 545 254 575 250 Q 600 246 620 252" fill="none" stroke="var(--warn)" stroke-width="1.6" stroke-dasharray="6 3"/>
+<text x="150" y="76" font-size="11.5" fill="var(--accent)">解析平均模型</text>
+<text x="500" y="204" font-size="11.5" fill="var(--warn)">开关仿真 / FRA 实测</text>
+
+<line x1="330" y1="30" x2="330" y2="210" stroke="var(--border-strong)" stroke-width="0.6" stroke-dasharray="3 3"/>
+<text x="334" y="42" font-size="10.5" fill="var(--faint)">f<tspan baseline-shift="sub" font-size="8">sw</tspan>/3</text>
+<line x1="488" y1="30" x2="488" y2="210" stroke="var(--warn)" stroke-width="0.8" stroke-dasharray="5 4"/>
+<text x="492" y="42" font-size="10.5" fill="var(--warn)">f<tspan baseline-shift="sub" font-size="8">sw</tspan>/2：平均模型不再可信，边带效应登场</text>
+<text x="355" y="120" font-size="10.5" fill="var(--faint)">两线在此之前重合 = 模型被验证</text>
+</svg>
+<figcaption>对拍图的读法：<b>低频重合是义务，高频分叉是预告</b>。平均模型给出的是"设计工作区"的精确描述；f<sub>sw</sub>/2 以上的差异不是模型"错了"，而是它从不承担那里的事。若低频就不重合，查参数（ESR、DCR、工作点）而不是怀疑理论。</figcaption>
+</figure>
+
+<h3 id="ch07-6">7.6 本例的设计结论</h3>
+<div class="card">
+<table>
+<thead><tr><th style="width:34%">结论</th><th>数值依据</th></tr></thead>
+<tbody>
+<tr><td>功率级不可直连：需要完整环路</td><td>G<sub>do</sub> 39.7 dB、Q 14.5、RHPZ 卡位——无源网络自身无法既快又稳</td></tr>
+<tr><td>穿越频率取 f<sub>c</sub> ≈ 1 kHz（f<sub>rhpz</sub>/6）</td><td>f<sub>c</sub> = 2 kHz 时 ∠G<sub>vd</sub> ≈ −189°，PM 需求超 Type III 上限；1 kHz 处 ∠G<sub>vd</sub> ≈ −183°，补偿器提供 ≈ +58° 绝对相位即可达 55° PM → Type III（零点置于 f<sub>0</sub> 附近、极点贴 ESR 零点与 f<sub>sw</sub>）</td></tr>
+<tr><td>带宽天花板由 f<sub>rhpz</sub> 而非 f<sub>sw</sub> 决定</td><td>f<sub>sw</sub>/10 = 10 kHz 与 frhpz/3 = 2.1 kHz 取小者。想再提速可以减 L 吗？——ω<sub>rhpz</sub> = RD′²/L，<b>减 L 确实把 f<sub>rhpz</sub> 推高</b>，方向没错；代价是电流纹波、峰值电流与开关/导通损耗全面上升，磁件体积也涨——带宽不是免费的。轻载（R 大）同样推高 f<sub>rhpz</sub>，但 Q 峰同步恶化，两头都要看</td></tr>
+<tr><td>轻载复算项</td><td>R 升 → f<sub>rhpz</sub> 升（变好）但 Q 升（变坏）、I<sub>L</sub> 降；以 20% 负载复算 f<sub>0</sub> 处增益裕度</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note ok">
+  <p><b>把这个算例和《电路与系统分析》第 6 章的 Buck 算例放在一起看</b>：同一条流水线，Buck 交出的是一张"温和"的 Bode（可打 30 kHz），Boost 交出的是一张"带刺"的 Bode（只能打 1 kHz）。建模层的产出质量直接封顶了环路层的设计空间——这正是建模值得单独成层的理由。补偿网络的元件参数化见下游文档。</p>
+</div>
+
+<h2 id="ch08"><span class="num">08</span>电流模式建模：另一条路</h2>
+
+<h3 id="ch08-1">8.1 为什么要电流环</h3>
+<p>电压模式里占空比是唯一控制量；电流模式在内环直接控制电感电流峰值：误差放大器的输出变成电流指令 <i>i</i><sub>c</sub>，与采样的 <i>i</i><sub>L</sub> 斜坡比较产生关断时刻。对建模而言，它买到了四样东西：</p>
+<ul>
+<li><strong>双重极点消失</strong>：电流环把电感"驯化"成受控电流源，G<sub>vd</sub> 从二阶降为一阶（8.4），Buck 用 Type II 即可 —— 补偿难度大减。</li>
+<li><strong>逐周期限流</strong>：电流指令封顶 = 硬件级过流保护，短路测试（SiC 耐受只有几微秒）因此可行。</li>
+<li><strong>显著改善输入滤波交互</strong>：电感在中低频被表现为受控电流源，与输入 LC 的谐振交互大幅减弱（Middlebrook 判据压力变小）。注意是"改善"不是"免疫"——恒功率的负增量输入阻抗本质并没有消失，只是在电流环带宽内被环路行为掩盖，带宽外依旧要按老规矩检查。</li>
+<li><strong>有利于多相均流</strong>：各相电流受同一指令约束，通常无需独立均流环路即可接受。但均流精度最终受限于电流采样失调、斜率补偿失配与传播延时——大电流多相设计里这些误差项仍要逐项核算。</li>
+</ul>
+<div class="note">
+  <p><b>代价也要入账</b>：电流采样与调理（检相移、消偏置）、峰值对开关噪声敏感（需消隐 blanking）、占空比大于 0.5 时的次谐波问题（8.2）、以及<em>模型本身</em>多了采样效应——电压模式的平均模型在电流模式里不够用了。建模层的任务就是把这几笔账算清楚。</p>
+</div>
+
+<h3 id="ch08-2">8.2 采样与次谐波振荡</h3>
+<p>峰值电流模式在每个周期<em>采样</em>一次电感电流。电流环的控制量不是瞬时电流，而是"上一拍开始、这一拍结束"的斜坡交点。设某拍电流峰值出现扰动 δ（采样时刻错位），下一个周期的推演（Buck：上升斜率 <i>m</i><sub>1</sub> = (<i>v</i><sub>g</sub>−<i>V</i><sub>o</sub>)/<i>L</i>，下降 <i>m</i><sub>2</sub> = <i>V</i><sub>o</sub>/<i>L</i>）：</p>
+<div class="eq">
+扰动传导：&nbsp;<i>δ</i>[<i>n</i>+1] = −(<i>m</i><sub>2</sub>/<i>m</i><sub>1</sub>)·<i>δ</i>[<i>n</i>] = −(<i>D</i>/<i>D</i>′)·<i>δ</i>[<i>n</i>]
+</div>
+<p>负号来自交点在下降沿；<b>幅值比 = D/D′ = m₂/m₁</b>（伏秒平衡的镜像）。于是 <i>D</i> &gt; 0.5 时 |比| &gt; 1：扰动逐拍放大，周期加倍锁死在 <i>f</i><sub>sw</sub>/2——这就是次谐波振荡，示波器上一眼可认：开关节点波形"一大一小"交替。</p>
+
+<figure>
+<svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>峰值电流模式：斜坡、比较与次谐波/斜率补偿</title>
+<desc>左图 D=0.65 无斜率补偿：电感电流逐周期扰动放大，交替宽窄脉冲；右图加入斜率 ma 的补偿斜坡后扰动逐周期收敛。标注 m1 上升斜率、m2 下降斜率、电流指令 Ic 与关断交点。</desc>
+
+<text x="40" y="24" font-size="12" font-weight="600" fill="var(--warn)">无斜率补偿（D = 0.65 &gt; 0.5）</text>
+<line x1="52" y1="44" x2="52" y2="240" stroke="var(--border-strong)" stroke-width="0.8"/>
+<line x1="52" y1="240" x2="320" y2="240" stroke="var(--border-strong)" stroke-width="0.8"/>
+<line x1="52" y1="120" x2="320" y2="120" stroke="var(--muted)" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="306" y="114" font-size="10.5" fill="var(--muted)">Ic</text>
+<path d="M52 216 L 96 112 L 128 240 L 206 104 L 238 240 L 292 118 L 320 240" fill="none" stroke="var(--warn)" stroke-width="1.6"/>
+<text x="74" y="264" font-size="10.5" text-anchor="middle" fill="var(--faint)">宽</text>
+<text x="166" y="264" font-size="10.5" text-anchor="middle" fill="var(--faint)">窄</text>
+<text x="266" y="264" font-size="10.5" text-anchor="middle" fill="var(--faint)">宽 · 周期加倍 @ f<tspan baseline-shift="sub" font-size="8">sw</tspan>/2</text>
+<text x="58" y="60" font-size="10.5" fill="var(--faint)">iL</text>
+
+<text x="366" y="24" font-size="12" font-weight="600" fill="var(--ok)">加斜率补偿 ma ≥ m₂/2</text>
+<line x1="378" y1="44" x2="378" y2="240" stroke="var(--border-strong)" stroke-width="0.8"/>
+<line x1="378" y1="240" x2="636" y2="240" stroke="var(--border-strong)" stroke-width="0.8"/>
+<path d="M378 96 L 636 210" stroke="var(--muted)" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="600" y="204" font-size="10.5" fill="var(--muted)">ma 斜坡</text>
+<path d="M378 216 L 420 120 L 448 204 L 486 124 L 512 198 L 546 128 L 574 194 L 608 132" fill="none" stroke="var(--ok)" stroke-width="1.6"/>
+<text x="430" y="264" font-size="10.5" fill="var(--faint)">扰动幅值 ∝ (m₂−ma)/(m₁+ma) &lt; 1，逐拍收敛</text>
+<text x="392" y="88" font-size="10.5" fill="var(--ok)">m₁（充）</text>
+<text x="452" y="112" font-size="10.5" fill="var(--ok)">m₂（放）</text>
+</svg>
+<figcaption>左：扰动在交点处逐拍放大（D/D′ = 1.86 倍），D 越大越凶。右：给比较斜坡加下倾斜率 ma，等价于把下降斜率抬高——扰动衰减比变为 (m₂−ma)/(m₁+ma)。波形从"交替宽窄"回到"均匀重复"。</figcaption>
+</figure>
+
+<h3 id="ch08-3">8.3 斜率补偿的定量设计</h3>
+<div class="eq">
+收敛条件：&nbsp;|(<i>m</i><sub>2</sub> − <i>m</i><sub>a</sub>)/(<i>m</i><sub>1</sub> + <i>m</i><sub>a</sub>)| &lt; 1&nbsp;&nbsp;⇐&nbsp;&nbsp;<i>m</i><sub>a</sub> &gt; (<i>m</i><sub>2</sub> − <i>m</i><sub>1</sub>)/2&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">对任意 D 成立的充分条件：ma ≥ m₂/2（worst case D→1）</span>
+</div>
+<div class="card">
+<table>
+<thead><tr><th style="width:30%">取值</th><th>效果</th></tr></thead>
+<tbody>
+<tr><td>m<sub>a</sub> = m<sub>2</sub>/2（理论下限）</td><td>全占空比范围刚好收敛：衰减比 = (m₂/2)/(m₁+m₂/2)，D = 0.5 时约 1/3，D→1 时趋于 1（一拍不衰减）——贴线设计，量产不建议</td></tr>
+<tr><td>m<sub>a</sub> = m<sub>2</sub>（工程常用上限附近）</td><td>衰减比 = 0，一拍消灭扰动（deadbeat）；但斜坡由人工分量主导，等效电流环跨导被压缩、信噪比变差。多数设计取 ma = (0.5~1)·m₂</td></tr>
+<tr><td>m<sub>a</sub> ≫ m<sub>2</sub>（过大）</td><td>斜坡被人工主导：等效跨导下降、动态响应变钝；最小导通时间变长，占空比上限受限</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note warn">
+  <p><b>别忘了"环路增益账本"里的 F<sub>m</sub> 换账</b>：电流环闭环后，电压环看到的调制器不再是 1/<i>V</i><sub>ramp</sub>，而是"电流指令 → 电感电流"≈ 1（低频）。《电路与系统分析》5.1 的 <i>T</i>(<i>s</i>) = <i>G</i><sub>c</sub>·<i>G</i><sub>vd</sub>·<i>F</i><sub>m</sub>·<i>H</i> 结构不变，但 <i>G</i><sub>vd</sub> 与 <i>F</i><sub>m</sub> 都要换成电流模式的版本——沿用电压模式的参数是实测对不上的经典原因。</p>
+</div>
+
+<h3 id="ch08-4">8.4 简化模型：双重极点消失</h3>
+<p>设计惯例（f<sub>c</sub> ≪ f<sub>sw</sub>/5 时成立）：把电流内环视为"带宽 ≈ f<sub>sw</sub>/2 的 1:1 电流跟随器"。功率级从电压环看变成：受控电流源 î<sub>c</sub> 灌入输出电容网络：</p>
+<div class="eq">
+<i>Buck 电流模式：</i>&nbsp;<i>v̂</i><sub>o</sub>/î<sub>c</sub> ≈ ( 1/<i>sC</i> + <i>r</i><sub>C</sub> ) ∥ <i>R</i> = <i>R</i>(1 + <i>s r</i><sub>C</sub><i>C</i>) / (1 + <i>s</i>(<i>R</i> + <i>r</i><sub>C</sub>)<i>C</i>)&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">单极点 fp = 1/(2πRC) + ESR 零点</span>
+</div>
+<div class="eq">
+环路视角：&nbsp;电流环闭环传递（低频）≈ 1&nbsp;&nbsp;⇒&nbsp;&nbsp;<i>G</i><sub>vd</sub><sup>VM</sup>(二阶) ⟶ <i>G</i><sub>vo,cm</sub>(一阶)&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">双重极点被"吸收"，峰值 Q 一并消失 ⇒ 轻载谐振峰难题不复存在</span>
+</div>
+
+<figure>
+<svg viewBox="0 0 660 270" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>电压模式与电流模式功率级传函对比</title>
+<desc>幅频：电压模式 Gvd 在 f0 处以 −40dB/dec 下落；电流模式近似单极点 −20dB/dec。相频：电压模式趋向 −180°，电流模式止步 −90°。电流模式在 fsw/2 附近因采样效应偏离（虚线）。</desc>
+
+<text x="90" y="28" font-size="12" fill="var(--muted)">幅频</text>
+<line x1="90" y1="40" x2="90" y2="140" stroke="var(--border-strong)" stroke-width="0.8"/>
+<line x1="90" y1="140" x2="620" y2="140" stroke="var(--border-strong)" stroke-width="0.8"/>
+<path d="M90 60 L 240 60 L 380 126 L 540 168 L 620 186" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+<path d="M90 104 L 300 104 Q 380 112 460 148 L 560 186" fill="none" stroke="var(--ok)" stroke-width="1.8"/>
+<path d="M460 148 Q 500 160 520 178 L 560 214" fill="none" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="4 3"/>
+<text x="204" y="80" font-size="11" fill="var(--accent)">电压模式：−40/dec（双极）</text>
+<text x="312" y="96" font-size="11" fill="var(--ok)">电流模式：−20/dec（单极）</text>
+<text x="524" y="198" font-size="10.5" fill="var(--ok)">采样效应偏离</text>
+
+<text x="90" y="184" font-size="12" fill="var(--muted)">相频</text>
+<line x1="90" y1="196" x2="90" y2="248" stroke="var(--border-strong)" stroke-width="0.8"/>
+<line x1="90" y1="248" x2="620" y2="248" stroke="var(--border-strong)" stroke-width="0.8"/>
+<text x="84" y="202" font-size="10" text-anchor="end" fill="var(--faint)">0°</text>
+<text x="84" y="230" font-size="10" text-anchor="end" fill="var(--faint)">−90°</text>
+<text x="84" y="248" font-size="10" text-anchor="end" fill="var(--faint)">−180°</text>
+<path d="M90 202 Q 200 204 260 244 L 620 246" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+<path d="M90 202 Q 260 206 340 226 L 620 230" fill="none" stroke="var(--ok)" stroke-width="1.6"/>
+<text x="430" y="240" font-size="10.5" fill="var(--accent)">VM：−180°</text>
+<text x="470" y="220" font-size="10.5" fill="var(--ok)">CM：止步 −90°</text>
+<text x="620" y="264" font-size="10.5" text-anchor="end" fill="var(--faint)">频率（对数）</text>
+</svg>
+<figcaption>电流模式用一阶换二阶：补偿从 Type III 降级为 Type II、轻载 Q 难题消失、相位止步 −90°（Boost / Buck-Boost 另加 RHPZ 的 −90°）。"好做环路"是它统治中低功率市场的根本原因。</figcaption>
+</figure>
+
+<p>两个提醒：<strong>Boost 与 Buck-Boost 电流化之后 RHP 零点仍在</strong>（能量"先断后供"的机制没变，位置近似仍在 ω ≈ <i>R D</i>′²/<i>L</i> 量级）——电流模式治极点、不治非最小相位，带宽上限没有解除；<strong>电流模式的线扰动抑制有窗口期</strong>：电流环带宽以上，输入电压变化经占空比直通输出（G<sub>vg</sub> 高频抬升），PFC 前级的 100 Hz 纹波抑制要在低频段靠电流环增益解决。</p>
+
+<h3 id="ch08-5">8.5 简化模型的边界</h3>
+<p>"1:1 电流跟随器"是低频近似。电流环的采样本质使其精确模型在 <i>f</i><sub>sw</sub>/2 处有一对等效双重极点，<i>Q</i> 随 <i>D</i>→0.5 急剧升高（无补偿时发散——与 8.2 的次谐波是同一件事的两种语言）。这就是 Ridley 对"教科书电流模式模型"的著名修正（含斜率补偿的完整连续时间模型，1991）。</p>
+<div class="card">
+<table>
+<thead><tr><th style="width:34%">症状</th><th style="width:30%">诊断</th><th>对策</th></tr></thead>
+<tbody>
+<tr><td>实测相位比简化模型多跌 90°+ 于 fc 附近</td><td>fc 逼近 f<sub>sw</sub>/5 ~ /3，采样极点登场</td><td>fc 下压，或按 Ridley / 采样数据模型重设计</td></tr>
+<tr><td>D 在 0.45~0.55 扫过噪声谷</td><td>f<sub>sw</sub>/2 处 Q 峰扫过环路中频带</td><td>保证斜率补偿按 8.3 取值；避开该占空比工作区</td></tr>
+<tr><td>消隐时间（blanking）加上后高频段曲线漂移</td><td>消隐把采样时刻推迟 → 附加延时</td><td>把消隐时长计进环路延时预算；仿真时建模它</td></tr>
+<tr><td>CCM→DCM 边界处环路突变</td><td>电流环增益在 DCM 不再是 1:1</td><td>按边界工况分别建两套模型（第 09 章）</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note ok">
+  <p><b>本层的学习检查点</b>：能向同事解释为什么"次谐波振荡、8.3 的 ma ≥ m₂/2、8.5 的 f<sub>sw</sub>/2 极点 Q 发散"是同一条物理事实的三个侧面——电流只在每个周期被采样一次，而扰动恰好在交替拍上被放大。解释通了，电流模式建模就毕业了。</p>
+</div>
+<h2 id="ch09"><span class="num">09</span>DCM 与模型边界</h2>
+
+<h3 id="ch09-1">9.1 DCM 破坏了哪条假设</h3>
+<p>CCM 建模从头到尾默认了一件事：<strong>d 是自由输入，二极管导电时长就是它的补 d′T</strong>。DCM 下电感电流每拍归零，二极管在 d₂T 提前截止——而 d₂ 不是指令，是电路自己"算"出来的：以 Buck-Boost 为例，由零伏秒平衡（升：V<sub>g</sub>·dT；降：V<sub>o</sub>·d₂T）直接解出</p>
+<div class="eq">
+<i>d</i>₂ = <i>d</i>·<i>V</i><sub>g</sub>/<i>V</i><sub>o</sub>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">第三个区间 1 − d − d₂ 全程零电流，纯粹的"空档"</span>
+</div>
+<p>于是平均化的账本变了：以 Buck 为例，输入侧平均电流等于三角波面积除以周期，</p>
+<div class="eq">
+<i>ī</i><sub>in</sub> = ½·<i>d</i>·<i>i</i><sub>pk</sub> = <i>d</i>²<i>T</i>(<i>V</i><sub>g</sub> − <i>V</i><sub>o</sub>) / (2<i>L</i>)&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">电流不再"跟随电感"，而是 d 的二次函数 × 电压差</span>
+</div>
+<p>这就是 DCM 小信号与 CCM 分道扬镳的地方：<strong>开关网络把"电感 + 开关"联合折成一个非线性受控电阻</strong>。此外变比 M 也不再只由 D 决定，而是随负载滑动——"换负载不换模型"在 DCM 里不成立。</p>
+
+<h3 id="ch09-2">9.2 开关电感：Vorperian 的处理</h3>
+<p>Vorperian 的 Part II 给出 DCM 的统一处理：保留 PWM switch 三端结构，把电感连同其换流一起折叠成<b>开关电感（switched inductor）</b>——一个由 d 调制的等效电阻：</p>
+<div class="eq">
+<i>R</i><sub>e</sub> = <i>v</i> / <i>ī</i> = 2<i>f</i><sub>sw</sub><i>L</i> / <i>d</i>²&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">（Buck-Boost 型，整流斜率取 Vg；Buck 型含 (Vg−Vo)，形式同阶）</span>
+</div>
+<p>线性化后得到两个受控量，这正是 DCM 环路好做又难精调的根源：</p>
+<div class="eq">
+电压电导：&nbsp;<i>g</i>₁ = ∂<i>ī</i>/∂<i>v</i> = 1/<i>R</i><sub>e</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;调制跨导：&nbsp;<i>g</i>₂ = ∂<i>ī</i>/∂<i>d</i> = 2<span class="lbl">ī</span>/<i>d</i>&nbsp;&nbsp;&nbsp;&nbsp;<span class="lbl">同样的 d̂，DCM 拿到的电流响应是 CCM 的近两倍阶——但增益基数小</span>
+</div>
+<div class="card">
+<table>
+<thead><tr><th style="width:30%">后果</th><th>对建模 / 环路设计意味着什么</th></tr></thead>
+<tbody>
+<tr><td>双重极点消失</td><td>电感被 Re 替代后，输出只剩电容 × 负载的一阶系统 + ESR 零点——Bode 大幅简化，环路往往 Type II 收工</td></tr>
+<tr><td>直流增益含负载</td><td>M 随 R 滑动：线调整率变差（输入电压变化部分被 d₂ 吸收）、设计表里的 D 变成"该负载下的 D"</td></tr>
+<tr><td>模型参数逐点算</td><td>Re、g₂ 都含 d² 与工作点电流——扫工况不再是"复核"，而是"换模型"</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="ch09-3">9.3 使用 DCM 模型的三条经验</h3>
+<ul>
+<li><strong>先划模式边界再建模</strong>。定义 K = 2<i>L</i>/(<i>R T</i><sub>s</sub>)（归一化电感），CCM/DCM 边界：Buck 为 K<sub>crit</sub> = (1−D)；Boost 为 K<sub>crit</sub> = D(1−D)²；反相 Buck-Boost 为 K<sub>crit</sub> = (1−D)²。轻载侧几乎必然 DCM，环路要按两套模型分别校核，取最坏穿越。</li>
+<li><strong>边界附近最险</strong>：CCM→DCM 过渡时 G<sub>vd</sub> 的增益与相位发生结构突变（阶次变化），工作在边界 ±20% 内的设计实测常出现"同一台机器、冷机与热机环路不同"——那是负载电流漂过了边界。</li>
+<li><strong>好消息：CCM 的 RHPZ 在 DCM 中消失</strong>。电感电流每拍从零升起、又归零，能量不再"隔拍传递"——Boost / 反激进入 DCM 后，那个 CCM 右半平面零点随之消失，这正是 DCM 反激敢把环路带宽做高的原因。但别高兴太早："控制只在每个周期生效一次"的脉冲传输本质仍在，相位在 f<sub>sw</sub>/2 附近照样恶化，且 DCM 增益随负载变化剧烈——带宽一般仍按 ≤ f<sub>sw</sub>/10 ~ /20 克制设计，并在边界工况复核。</li>
+</ul>
+<div class="note">
+  <p><b>工具层提示</b>：SIMPLIS 的开关模型与 PLECS 的精确开关仿真天然支持 DCM，而 SIMPLIS 的"平均模型"仅 CCM 有效——跨模式的研究（如负载甩载穿越边界）必须回到开关级。这是模型族的边界，不是工具的缺陷。</p>
+</div>
+
+<h2 id="ch10"><span class="num">10</span>十个常见误区</h2>
+<ol>
+<li><strong>把一个拓扑的传函当通用公式套</strong>。G<sub>vg</sub> = (D/V<sub>g</sub>)·G<sub>vd</sub> 只在 Buck 成立；G<sub>do</sub> = V<sub>g</sub> 也是。换拓扑回 05/07 章的方法重推，别改字母。</li>
+<li><strong>拿平均模型往 f<sub>sw</sub>/2 以上设计</strong>。平均模型不含有开关信息，那里的预测没有意义。分叉点（7.5 图）就是模型的"保质期"标签。</li>
+<li><strong>CCM 模型硬套 DCM 工况</strong>。轻载 DCM 下 M 随负载漂移、模型阶次改变；用 9.3 的边界公式先分域，再分域建模。</li>
+<li><strong>电流模式把一阶简化模型推到 f<sub>c</sub> &gt; f<sub>sw</sub>/5</strong>。采样极点与次谐波行为在 f<sub>sw</sub>/2 附近等着——简化模型在那里系统性乐观。</li>
+<li><strong>斜率补偿只问"加没加"，不问"多大、什么单位"</strong>。m<sub>a</sub> 必须与电感电流斜率同一折算体系（都折算到采样信号上）；从斜坡发生器规格书抄下来而没除 R<sub>i</sub> 的补偿量是错的。</li>
+<li><strong>试图用极点抵消 RHP 零点</strong>。抵消零点所需极点位于右半平面，本身不稳定；RHPZ 只绕不让。幅频 +20 dB/dec、相频 −90° 的"矛盾组合"是它的身份证。</li>
+<li><strong>四条传函当一条用</strong>。G<sub>vd</sub>、G<sub>vg</sub>、Z<sub>out</sub> 各对应不同的"另一输入置零"条件，规格书里音频隔离度、负载阶跃、环路整定各取所需；混用等于同时让开关既动又不动。</li>
+<li><strong>拓扑里有容性环 / 电感斩波还硬推 SSA</strong>。状态变量被迫跳变的场合（3.5），推出来的方程在数学上就不属于这个电路。先改方法（电荷平衡、纳入寄生电容、PCAM 类修正），再谈结果。</li>
+<li><strong>只用一个工作点建一次模型就设计全范围环路</strong>。D 随线与载变化，ω<sub>0</sub>、Q、f<sub>rhpz</sub> 全跟着动（Boost 轻载 Q 与峰最高）。扫工况 = 扫模型，环路按最恶劣工况整定。</li>
+<li><strong>实测与模型不符就断言"理论不准"</strong>。按三层排查：工作点（直流解 vs 实测静态值）→ 寄生（ESR/DCR/开关管压降未建模）→ 频率边界（是否在有效期外）。三层都对不上，才轮到怀疑推导。</li>
+</ol>
+
+<h2 id="ch11"><span class="num">11</span>公式速查卡</h2>
+
+<h3 id="ch11-1">平均化与线性化</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">SSA 平均方程</div><div class="e">d<b>x</b>/d<i>t</i> = (<b>A</b>₁<i>d</i> + <b>A</b>₂<i>d</i>′)<b>x</b> + (<b>B</b>₁<i>d</i> + <b>B</b>₂<i>d</i>′)<i>v</i><sub>g</sub></div></div>
+  <div class="fc"><div class="h">直流模型</div><div class="e">0 = <b>A</b>(<i>D</i>)<b>X</b> + <b>B</b>(<i>D</i>)<i>V</i><sub>g</sub> → <b>X</b></div></div>
+  <div class="fc"><div class="h">控制输入矩阵（通用）</div><div class="e"><b>B̂</b>₂ = (<b>A</b>₁−<b>A</b>₂)<b>X</b> + (<b>B</b>₁−<b>B</b>₂)<i>V</i><sub>g</sub></div></div>
+  <div class="fc"><div class="h">二阶捷径</div><div class="e">ω<sub>0</sub> = √det(<b>Â</b>)，<i>Q</i> = −√det(<b>Â</b>)/tr(<b>Â</b>)</div></div>
+  <div class="fc"><div class="h">平均化经验判据</div><div class="e"><i>f</i><sub>sw</sub> ≥ 10·max(<i>f</i><sub>0</sub>, <i>f</i><sub>c</sub>)（工程经验值）；设计一律止于 <i>f</i> &lt; <i>f</i><sub>sw</sub>/2</div></div>
+  <div class="fc"><div class="h">线性化条件</div><div class="e">|<i>d̂</i>| ≪ <i>D</i>,<i>D</i>′；|<i>x̂</i>| ≪ <i>X</i>（标幺 ε ≪ 1，二阶乘积项 O(ε²)）</div></div>
+</div>
+
+<h3 id="ch11-2">PWM switch 与端口方程</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">Buck 大信号端口</div><div class="e"><i>i</i><sub>sw</sub> = <i>d·i</i><sub>L</sub>，<i>v</i><sub>sw</sub> = <i>d·v</i><sub>g</sub></div></div>
+  <div class="fc"><div class="h">Boost 大信号端口</div><div class="e"><i>i</i><sub>sw</sub> = <i>d·i</i><sub>L</sub>，<i>v</i><sub>sw</sub> = <i>d</i>′·<i>v</i><sub>o</sub></div></div>
+  <div class="fc"><div class="h">小信号线性化规则</div><div class="e">乘积 → 静态量×扰动 + 扰动量×静态；d̂·x̂ 丢弃</div></div>
+  <div class="fc"><div class="h">受控源对（Boost 型）</div><div class="e">e<sub>a</sub> = −<i>V</i><sub>o</sub>·<i>d̂</i>（串），j<sub>c</sub> = <i>I</i><sub>L</sub>·<i>d̂</i>（并）</div></div>
+  <div class="fc"><div class="h">DCM 开关电感</div><div class="e"><i>R</i><sub>e</sub> = 2<i>f</i><sub>sw</sub><i>L</i>/<i>d</i>²，g₂ = ∂ī/∂d = 2ī/<i>d</i></div></div>
+  <div class="fc"><div class="h">DCM 平均输入电流（Buck）</div><div class="e">ī<sub>in</sub> = <i>d</i>²<i>T</i>(<i>V</i><sub>g</sub>−<i>V</i><sub>o</sub>)/(2<i>L</i>)</div></div>
+</div>
+
+<h3 id="ch11-3">传递函数（Buck / Boost）</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">Buck G<sub>vd</sub></div><div class="e"><i>V</i><sub>g</sub>(1+<i>s r</i><sub>C</sub><i>C</i>) / [1+<i>s</i>(<i>L</i>/<i>R</i>+<i>r</i><sub>C</sub><i>C</i>)+<i>s</i>²<i>LC</i>]</div></div>
+  <div class="fc"><div class="h">Buck G<sub>vg</sub>（比例律特有）</div><div class="e"><i>G</i><sub>vg</sub> = (<i>D</i>/<i>V</i><sub>g</sub>)·<i>G</i><sub>vd</sub>，G<sub>vg</sub>(0) = <i>D</i></div></div>
+  <div class="fc"><div class="h">Buck Z<sub>out</sub>（谐振峰）</div><div class="e"><i>sLR</i>(1+<i>s r</i><sub>C</sub><i>C</i>) / [<i>R</i>+<i>s</i>(<i>L</i>+<i>R r</i><sub>C</sub><i>C</i>)+<i>s</i>²<i>LC</i>(<i>R</i>+<i>r</i><sub>C</sub>)]；DC→0，f<sub>0</sub> 处起峰</div></div>
+  <div class="fc"><div class="h">Boost G<sub>vd</sub></div><div class="e">(<i>V</i><sub>g</sub>/<i>D</i>′²)(1−<i>s</i>/ω<sub>z</sub>) / [1+<i>s</i>/(<i>Q</i>ω<sub>0</sub>)+(<i>s</i>/ω<sub>0</sub>)²]</div></div>
+  <div class="fc"><div class="h">Boost 特征量</div><div class="e">ω<sub>0</sub>=<i>D</i>′/√(<i>LC</i>)，<i>Q</i>=<i>RD</i>′√(<i>C</i>/<i>L</i>)，ω<sub>rhpz</sub>=<i>RD</i>′²/<i>L</i></div></div>
+  <div class="fc"><div class="h">Boost G<sub>vg</sub></div><div class="e">(1/<i>D</i>′) / [同分母]（分子无零点，不成比例律）</div></div>
+</div>
+
+<h3 id="ch11-4">电流模式与 DCM</h3>
+<div class="formula-grid">
+  <div class="fc"><div class="h">电压模式调制器增益</div><div class="e"><i>F</i><sub>m</sub> = 1/<i>V</i><sub>ramp</sub>（电流模式低频等效 ≈ 1 换账）</div></div>
+  <div class="fc"><div class="h">电流环扰动映射</div><div class="e"><i>δ</i>[n+1] = −(<i>m</i>₂−<i>m</i><sub>a</sub>)/(<i>m</i>₁+<i>m</i><sub>a</sub>)·<i>δ</i>[n]</div></div>
+  <div class="fc"><div class="h">斜率补偿</div><div class="e"><i>m</i><sub>a</sub> &gt; (<i>m</i>₂−<i>m</i>₁)/2；任意 D 充分：<i>m</i><sub>a</sub> ≥ <i>m</i>₂/2</div></div>
+  <div class="fc"><div class="h">电流模式 Buck 植物</div><div class="e"><i>R</i>(1+<i>s r</i><sub>C</sub><i>C</i>) / (1+<i>s</i>(<i>R</i>+<i>r</i><sub>C</sub>)<i>C</i>)，f<sub>p</sub> ≈ 1/(2π<i>RC</i>)</div></div>
+  <div class="fc"><div class="h">CCM/DCM 边界</div><div class="e">K = 2<i>L</i>/(<i>RT</i><sub>s</sub>)；Buck：K<sub>crit</sub> = 1−D；Boost：D(1−D)²；Buck-Boost：(1−D)²</div></div>
+  <div class="fc"><div class="h">Boost 输出纹波</div><div class="e">Δ<i>v</i><sub>o</sub> ≈ <i>I</i><sub>o</sub><i>D</i>/(<i>C f</i><sub>sw</sub>)（导通期电容独立供载）</div></div>
+</div>
+
+<h2 id="ch12"><span class="num">12</span>自测：检查你是否真的掌握了</h2>
+<p>答案折叠在题目下方，均按"结论 → 推导/算式 → 常见误答"展开。先自己想，再展开对照——能对着空白纸复述出推导过程，才算过。</p>
+
+<details>
+<summary>1 · 为什么必须"先解直流、再做小信号"？展开式里的直流项去哪了？</summary>
+<p><b>结论：直流解不是"前置步骤"，而是小信号模型的一部分——一阶项的每一个系数都是工作点量。</b>三层原因：</p>
+<p>① <b>直流项是被"自动抵消"的，不是被删掉的</b>。把 <i>d</i> = <i>D</i>+<i>d̂</i>、<b>x</b> = <b>X</b>+<b>x̂</b> 代入平均方程后按量级分拣（4.2 节），零阶项恰好等于直流方程 0 = <b>A</b>(<i>D</i>)<b>X</b> + <b>B</b>(<i>D</i>)<i>V</i><sub>g</sub>。<b>它等于零的前提是 <b>X</b> 确实是那个直流解</b>——代入任何别的数都抵不掉，方程直接失衡。所以"先解直流"不是流程惯例，是抵消成立的条件。</p>
+<p>② <b>一阶项的系数全部取自工作点</b>：Boost 展开出的 <i>V</i><sub>C</sub>·<i>d̂</i>、<i>I</i><sub>L</sub>·<i>d̂</i>，其数值就是 3.3 节表格里的静态值。没有直流解，受控源增益无从填数。</p>
+<p>③ <b>"小"的判据本身以工作点为参照</b>：|<i>d̂</i>| ≪ <i>D</i>、|<i>v̂</i>| ≪ <i>V</i>，参照物就是静态值——不知道工作点，连"扰动算不算小"都无法判定。</p>
+<p><b>常见误答对照</b>：跳过直流直接背 G<sub>vd</sub> 公式，代入错误工作点（例如把 24 V 输入算的模型用在 48 V）——所有 V·d̂ 增益差一倍，环路实测增益与设计对不上，还找不到原因。这类错误的特征是"<i>形状</i>对、<i>增益</i>错"，正是工作点错的签名。</p>
+</details>
+
+<details>
+<summary>2 · 低频假设一句话说清，并给两条定量判据。</summary>
+<p><b>一句话：平均模型只描述"比开关慢得多的世界"——状态变量与输入量在一个开关周期内都几乎冻结，均值才能代表瞬时。</b></p>
+<p><b>判据①：f<sub>sw</sub> ≥ 10·max(f<sub>0</sub>, f<sub>c</sub>)。</b>f<sub>0</sub> 管"状态变量冻得住"——状态变量由 LC 决定变化快慢，f<sub>sw</sub> 远高于它时平均误差已远小于其它建模不确定度（"10 倍"是工程经验值，误差收敛速度随拓扑与调制方式而异，没有统一解析律）；f<sub>c</sub> 管"输入冻得住"——补偿器输出就是 d，环路带宽逼近开关频率时 d 每周期大步移动，"区间内 d 为常数"破产（1.3 节）。</p>
+<p><b>判据②：设计一律止于 f &lt; f<sub>sw</sub>/2。</b>平均模型的误差随 f/f<sub>sw</sub> 单调增大，本就不该用到接近开关频率处；f<sub>sw</sub>/2 真正的硬意义在于"每周期采样一次"的环节（电流模式、数字控制）——那里它是奈奎斯特频率，边带混叠与次谐波都锚定在此，必须换采样数据模型（8.5 节）。</p>
+<p><b>补充第三条（操作判据）</b>：实测时把注入幅度减半重测，曲线不变才算在线性区（4.5 节）。三条分别管"状态、输入、激励"，缺一不可。</p>
+</details>
+
+<details>
+<summary>3 · 本算例 Boost（24→48 V，R = 24 Ω，L = 150 μH）的 f<sub>rhpz</sub> 与带宽上限？</summary>
+<p><b>结论：f<sub>rhpz</sub> ≈ 6.37 kHz，带宽上限由它（而不是 f<sub>sw</sub>/10）决定，本例取 1 kHz 配 Type III。</b>完整推一遍：</p>
+<p>① 占空比：D′ = V<sub>g</sub>/V<sub>o</sub> = 24/48 = 0.5，D = 0.5。</p>
+<p>② 负载：R = V<sub>o</sub>/I<sub>o</sub> = 48/2 = 24 Ω（题目没直接给 I<sub>o</sub> 时先由功率求）。</p>
+<p>③ 右半平面零点：ω<sub>rhpz</sub> = R·D′²/L = 24 × 0.25 / 150μ = 40 krad/s → f<sub>rhpz</sub> = 40k/2π ≈ <b>6.37 kHz</b>。</p>
+<p>④ 顺手核对另两个特征量（它们影响 fc 处的相位预算）：f<sub>0</sub> = D′/(2π√(LC)) ≈ 438 Hz，Q = R·D′·√(C/L) ≈ 14.5——高 Q 意味着 fc 处功率级相位已深度跌落，相位余量要按最坏留。</p>
+<p>⑤ 带宽上限：f<sub>c</sub> ≤ f<sub>rhpz</sub>/3 ≈ 2.1 kHz。再算一步相位账：fc = 2 kHz 时 ∠G<sub>vd</sub> ≈ −189°，目标 PM 55° 需要补偿器提供 &gt; 64° 绝对相位，贴着 Type III 的上限；退到 fc = 1 kHz 时需求降到 ≈ +58°，才留出裕量。</p>
+<p><b>常见误答对照</b>：直接答 f<sub>sw</sub>/10 = 10 kHz——没有 RHPZ 意识。两条上限取<b>小者</b>，本题小者是 RHPZ 给的 2.1 kHz（再打折到 1 kHz）。</p>
+</details>
+
+<details>
+<summary>4 · 为什么 RHPZ 不能像 ESR 零点那样"用极点抵掉"？</summary>
+<p><b>结论：LHP 零点幅相同号、可以抵；RHP 零点幅相相反、抵消所需的极点自身不稳定。</b>逐条看：</p>
+<p>① <b>幅相符号对比</b>。LHP 零点（s = −ω<sub>z</sub>，如 ESR 零点）：幅频 +20 dB/dec、相频 +90°（超前）——幅相同号，用一个极点对消后净效果中性，数学与电路都成立。RHP 零点（s = +ω<sub>z</sub>）：幅频 +20 dB/dec、相频 −90°（<b>滞后</b>）——幅频说"该抬"、相频说"在拖"，符号相反。</p>
+<p>② <b>对消需要什么</b>：抵掉 s = +ω<sub>z</sub> 需要一个极点 s = +ω<sub>z</sub>，它的时域冲激响应是 e<sup>+ω<sub>z</sub>t</sup>——发散。即使代数上把分子分母"约掉"，这个不稳定模态仍留在闭环特征方程里，系统照样发散。<b>对消一个 RHP 零点 = 制造一个不稳定极点。</b></p>
+<p>③ <b>物理本质</b>：非最小相位 = 初始响应方向与指令相反（Boost 加大 d，二极管导电时间先缩短，输出先跌再升）。这种"先走反方向"是能量传递顺序决定的，任何稳定补偿器都消不掉，只能绕——工程规则 f<sub>c</sub> ≤ f<sub>rhpz</sub>/3~5（第 07 章）。</p>
+<p><b>常见误答对照</b>：知道"幅相相反"但答不出"为什么不能抵"——缺的是第②条的极点位置论证。反过来，ESR 零点是 LHP、可以抵，但 ESR 随温度老化漂移，押它当相位来源同样危险（《电路与系统分析》误区 3）。</p>
+</details>
+
+<details>
+<summary>5 · DCM 破坏了 CCM 建模的哪条假设？开关电感把 L 折成了什么？</summary>
+<p><b>结论：破坏了"d 是唯一自由控制量、二极管时长 = d′T"的假设；电感连同换流被折成一个由 d 调制的非线性电阻。</b></p>
+<p>① <b>哪条假设破了</b>：CCM 里两个区间恰好铺满一个周期，d 独立、d′ = 1−d。DCM 出现第三区间（电感电流为零的"空档"），二极管在 d₂T 自行截止——d₂ 不是指令，是电路由伏秒平衡自己解出来的（Buck-Boost：d₂ = d·V<sub>g</sub>/V<sub>o</sub>）。<b>未知数比方程多了</b>，直接套 CCM 平均方程必然出错，必须把 d₂ 的表达式代回、把开关网络整体重新平均。</p>
+<p>② <b>折成了什么</b>：平均输入电流 ī = d²·v<sub>g</sub>/(2f<sub>sw</sub>L)——电压与电流之间呈电阻关系，等效电阻 R<sub>e</sub> = 2f<sub>sw</sub>L/d²（9.2 节）。线性化给出两个量：电压电导 g₁ = ∂ī/∂v = 1/R<sub>e</sub>（输出电阻视角）与调制跨导 g₂ = ∂ī/∂d = 2ī/d（占空比视角）。</p>
+<p>③ <b>两个直接后果</b>：双重极点消失（电感被"电阻化"，输出只剩 R∥C 一阶系统）；变比 M 随负载漂移（R<sub>e</sub> 与负载同台分压）——所以 DCM 模型必须逐工作点重算（9.3 节）。</p>
+<p><b>常见误答对照</b>：只答"电感电流断流了"——这是现象不是假设；要答到"d₂ 由电路决定、d 失去独立性"才算触到建模层面。</p>
+</details>
+
+<details>
+<summary>6 · D = 0.65 的峰值电流模式为什么必须加斜率补偿？最小值和全范围充分值各是多少？</summary>
+<p><b>结论：不加补偿时扰动每拍放大 1.86 倍，次谐波发散；最小值 m<sub>a</sub> &gt; (m₂−m₁)/2，全范围充分值 m<sub>a</sub> ≥ m₂/2。</b>推一遍：</p>
+<p>① <b>扰动传导关系</b>（8.2 节）：某拍电流峰值带扰动 δ，下一拍变为 δ[n+1] = −(m₂−m<sub>a</sub>)/(m₁+m<sub>a</sub>)·δ[n]，负号来自交点在下降沿。</p>
+<p>② <b>不补偿时</b>（m<sub>a</sub>=0）：比值 = m₂/m₁ = D/D′ = 0.65/0.35 ≈ <b>1.86 &gt; 1</b>——扰动每拍放大 86%，几个周期就锁死在"一大一小"交替，振荡频率 f<sub>sw</sub>/2。</p>
+<p>③ <b>收敛条件</b>：|(m₂−m<sub>a</sub>)/(m₁+m<sub>a</sub>)| &lt; 1 ⟺ m<sub>a</sub> &gt; (m₂−m₁)/2——这是最小值，但它随工况变（m₁、m₂ 都随线压负载变），工程上要一个对任意 D 都成立的充分值。</p>
+<p>④ <b>充分值</b>：最恶劣情况 D→1（m₁→0），此时条件退化为 m<sub>a</sub> ≥ m₂/2——对全占空比范围成立，这就是"ma ≥ 0.5 m₂"口诀的出处。工程常取 (0.5~1)·m₂：偏小省噪声裕量但 D→1 处贴近边界；取 m<sub>a</sub> = m₂ 则一拍消灭扰动（deadbeat），但人工斜坡主导比较器，等效跨导被压缩、信噪比变差（8.3 节表）。</p>
+<p><b>常见误答对照</b>：答"ma 要大于 m₂"（过保守，牺牲性能）或只说"加个斜坡"而给不出与电感斜率同一折算体系的数值——后者在量产里表现为换了一批感量不同的电感后振荡复发。</p>
+</details>
+
+<details>
+<summary>7 · 电流模式之后，Buck 的植物变成什么？Boost 什么没变？</summary>
+<p><b>结论：Buck 从二阶降为一阶（双重极点消失）；Boost 的 RHPZ 原样保留——电流模式治极点、不治非最小相位。</b></p>
+<p>① <b>Buck</b>：电流环把电感"驯化"成受控电流源（低频 1:1 跟随指令），电感退出级联分压 → G<sub>vd</sub> 从 LC 双重极点变成输出网络的单极点 f<sub>p</sub> ≈ 1/(2πRC)，外加 ESR 零点；相位止步 −90°，轻载 Q 峰难题一并消失，Type II 即可收工（8.4 节）。附带红利：逐周期限流、显著改善输入滤波交互、有利于多相均流。</p>
+<p>② <b>Boost 没变的</b>：RHPZ 的来源是能量传递顺序——加大 d → 二极管导电时间先缩短 → 输出电流先跌。这个机制与电感由谁控制无关，<b>电流环管住了电感电流的大小，管不住"输出供能被切断半拍"这件事</b>，所以 RHPZ 仍在同量级位置（ω ≈ RD′²/L），带宽上限没有解除。另：采样效应也没变——f<sub>sw</sub>/2 附近的极点对仍在（8.5 节），f<sub>c</sub> 逼近 f<sub>sw</sub>/5 时要用 Ridley 完整模型。</p>
+<p><b>常见误答对照</b>："电流模式什么都能简化"——Boost 带宽并没有因换控制律变宽；把电流模式当带宽解药是选型阶段最常见的误判。</p>
+</details>
+
+<details>
+<summary>8 · SSA 在什么拓扑上直接失效？给两种场合与对策。</summary>
+<p><b>结论：SSA 的前提是"区间之间状态变量连续 + 两区间共享状态变量集合"，谁破坏它谁失效。</b>四种场合按机理分：</p>
+<p>① <b>电容换接</b>（容性回路、电容被开关并接短路）：电荷瞬时再分配，v<sub>C</sub> 跳变——"状态连续"破产。对策：改用电荷平衡描述跳变、保留回路寄生电阻让解连续、或用开关电容类专用平均方法（3.5 节）。</p>
+<p>② <b>电感斩波</b>（电感电流被开关强制断开）：i<sub>L</sub> 被迫突变，尖峰由寄生电容承接——该电容实际成了新状态变量。对策：把开关节点电容显式纳入模型（阶数升高）；反激/推挽里最常见的坑。</p>
+<p>③ <b>f<sub>sw</sub> 接近回路谐振频率</b>（LLC 等）：状态变量单周期内变化剧烈，低频假设破产。对策：描述函数（基波近似）、周期解拼接、或直接开关仿真 + FRA。</p>
+<p>④ <b>DCM</b>：d₂ 由电路决定、非独立输入（见第 5 题）。对策：第 09 章开关电感模型。</p>
+<p><b>判断口诀</b>：画出两个区间的等效电路，问一句"有没有电容电压或电感电流在切换瞬间<b>必须跳变</b>的约束"——有，先换方法再动笔。</p>
+</details>
+
+<details>
+<summary>9 · G<sub>vd</sub>、G<sub>vg</sub>、Z<sub>out</sub> 各自的"置零条件"是什么？为什么 Buck 的 G<sub>vg</sub> = (D/V<sub>g</sub>)G<sub>vd</sub> 在 Boost 不成立？</summary>
+<p><b>结论：定义即条件；Buck 的比例律来自"d 与 v<sub>g</sub> 只以乘积 d·v<sub>g</sub> 进入平均方程"，Boost 的结构不同则比例律瓦解。</b></p>
+<p>① <b>三个条件</b>：G<sub>vd</sub> = v̂<sub>o</sub>/d̂ |<sub>v̂g=0</sub>（输入无扰动）；G<sub>vg</sub> = v̂<sub>o</sub>/v̂<sub>g</sub> |<sub>d̂=0</sub>（占空比冻结）；Z<sub>out</sub> = −v̂<sub>o</sub>/î<sub>test</sub> |<sub>v̂g=0, d̂=0</sub>（两者同时置零，从输出节点注入测试电流）。三条传函是同一个线性电路对不同激励的响应。</p>
+<p>② <b>Buck 为什么成比例</b>：Buck 平均方程里 v<sub>g</sub> 只通过乘积 d·v<sub>g</sub> 进入（第 05 章），线性化后 v̂<sub>g</sub> 与 d̂ 经过<b>同一个受控源</b>注入电路（V<sub>g</sub>·d̂ + D·v̂<sub>g</sub>，见 5.5 节表格）——两条通路只差常数系数，故 G<sub>vg</sub> = (D/V<sub>g</sub>)·G<sub>vd</sub>，连分子里的 ESR 零点都相同。</p>
+<p>③ <b>Boost 为什么不成比例</b>：v<sub>g</sub> 直接出现在电感方程里（v<sub>L</sub> = v<sub>g</sub> − d′v<sub>C</sub>），而 d′ 乘的是<b>状态量</b> v<sub>C</sub>——两个输入注入的位置和路径不同：G<sub>vd</sub> 分子带 RHPZ、G<sub>vg</sub> 分子干净（7.3 节对比），结构都不同，遑论比例。</p>
+<p><b>工程意义</b>：Boost 的音频隔离度必须单独算，不能拿 G<sub>vd</sub> 换算——把 Buck 的比例律当通用公式是第 10 章误区 1。</p>
+</details>
+
+<details>
+<summary>10 · 模型建完之后，与现实的三步对拍是什么？分叉点说明什么？</summary>
+<p><b>结论：解析自检 → 开关仿真对拍 → 样机实测，成本递增；低频重合是义务，f<sub>sw</sub>/3 后分叉是有效期的标定，低频不重合才查参数。</b></p>
+<p>① <b>解析自检</b>：直流解（变比、工作点）与纹波公式对照仿真稳态，误差应在 0.5% 量级（差别即寄生损耗）。这一步抓"抄错系数、少除 2π"级别的低级错误，成本几乎为零。</p>
+<p>② <b>与开关级仿真对拍</b>：LTspice/PSIM 用 FRA 法（占空比注入小正弦、扫频测输出）或 SIMPLIS 平均模型直接 AC 扫频，与解析 Bode 叠图。<b>低频段重合是义务</b>；f<sub>sw</sub>/3 之后开始分叉属正常——分叉点就是平均模型有效期的实测标定（7.5 节图）。</p>
+<p>③ <b>与样机对拍</b>：断环注入测 T(s)（方法见《电路与系统分析》5.4），扣除 G<sub>c</sub>·F<sub>m</sub>·H 反推功率级，模型 / 开关仿真 / 样机三条线对比，偏差逐项归因。</p>
+<p><b>分叉点的含义</b>：它是模型与现实的"交接面"，不是理论失败的证据——平均模型从不含开关信息，f<sub>sw</sub>/2 之外本就不归它管。<b>排查顺序</b>（与《电路与系统分析》5.5 一致）：测量本身（注入隔离、幅度、探头）→ 模型参数（工作点、ESR/DCR 实际值、开关压降）→ 才轮到怀疑推导。顺序反了会把一天能定位的问题拖成一周。</p>
+</details>
+
+
+<h2 id="ch13"><span class="num">13</span>参考资料</h2>
+<p>按"一手优先"排序。建模这件事，三本来源各管一段：推导看 Erickson，电路直觉看 Vorperian 原文，工程口径看 Basso。</p>
+
+<h3 id="ch13-1">教科书</h3>
+<ul>
+<li><b>Erickson &amp; Maksimović, <i>Fundamentals of Power Electronics</i>, 3rd ed.</b> —— "AC equivalent circuit modeling"（区间方程、SSA、PWM switch 一节讲透）与"Converter transfer functions"（极零点与标准形式）两份原始出处都在其中；第 02、03、04 章的严格版推荐先读它。</li>
+<li><b>Basso, <i>Designing Control Loops for Linear and Switching Power Supplies</i></b> —— 小信号模型的工程口径、四条传函与电流模式实测校核，与本文第 06–08 章互补。</li>
+<li><b>Mohan, Undeland &amp; Robbins, <i>Power Electronics: Converters, Applications, and Design</i></b> —— 平均模型的直观版讲法，适合第一遍建立图像。</li>
+</ul>
+
+<h3 id="ch13-2">经典论文（原始出处）</h3>
+<ul>
+<li><b>R. D. Middlebrook &amp; S. Ćuk, "A general unified approach to modelling switching-converter power stages," PESC 1976</b> —— SSA 奠基论文；至今仍是最好的一次完整推导，本文第 03 章的源头。</li>
+<li><b>V. Vorperian, "Simplified analysis of PWM converters using the model of the PWM switch: Parts I &amp; II," IEEE Trans. Aerospace and Electronic Systems, 1990–1991</b> —— Part I 建立 CCM 三端模型，Part II 推进 DCM（开关电感）。第 05、09 章的原始出处。</li>
+<li><b>R. B. Ridley, "A new continuous-time model for current-mode control," IEEE Trans. Power Electronics, 1991</b> —— 给电流模式的采样本质一个连续时间等效（f<sub>sw</sub>/2 极点对），8.5 节内容所依托的模型。</li>
+</ul>
+
+<h3 id="ch13-3">应用笔记与仿真工具</h3>
+<ul>
+<li><b>Unitrode / TI</b>：<a href="https://www.ti.com/lit/an/slva061/slva061.pdf" target="_blank" rel="noopener">SLVA061《The PWM Switch Model》</a>——三端（a/p/c）定义与用法的官方文档，第 05 章的口径以此为准；SLUP 系列电源应用文档（PWM switch 模型经 Unitrode Seminar 传播至工业界）</li>
+<li><b>SIMPLIS</b>：官方文档关于 switch / average 两级模型与 AC 扫频（FRA）的方法学，7.5 节对拍流程的标准参考</li>
+<li><b>PLECS / LTspice / PSIM</b>：开关级频响提取（注入 + FFT / 线性化 AC 分析）的实现手册</li>
+<li>下游衔接：<a href="circuit-analysis.html">《电路与系统分析》</a>第 2 章（拉普拉斯与极零点读图）、第 3 章（补偿器）、第 5 章（环路实测与偏差归因）</li>
+</ul>
+
+<footer>
+<p>本页是「电力电子技能体系 · 建模层 03 小信号建模」的配套学习文档。上游：<a href="circuit-analysis.html">电路与系统分析</a>；返回 <a href="index.html">技能分层地图</a>。</p>
+</footer>
+
+</div>
+
+<!--TOC-SHELLCLOSE-BEGIN-->
+</main>
+</div>
+<!--TOC-SHELLCLOSE-END-->
+<!--TOC-WIDGET-BEGIN-->
+<div class="progress" id="progress"></div>
+<button class="toc-fab" id="tocFab" type="button" aria-expanded="false" aria-controls="tocPanel">目录</button>
+<div class="toc-scrim" id="tocScrim"></div>
+<aside class="toc-panel" id="tocPanel" aria-label="目录导航">
+<div class="toc-panel-head"><span>目录</span><button class="toc-close" id="tocClose" type="button" aria-label="关闭目录">&#10005;</button></div>
+<div class="toc-panel-body" id="tocPanelBody"></div>
+<a class="toc-top" href="#top" id="tocTop">回到顶部</a>
+</aside>
+<script>
+(function(){
+  var fab=document.getElementById('tocFab'),
+      panel=document.getElementById('tocPanel'),
+      scrim=document.getElementById('tocScrim'),
+      pbody=document.getElementById('tocPanelBody'),
+      sbody=document.getElementById('sidenavBody'),
+      progress=document.getElementById('progress');
+  var grid=document.querySelector('#toc .toc-grid');
+  if(grid&&pbody){ pbody.appendChild(grid.cloneNode(true)); }
+  var links=[].slice.call(document.querySelectorAll('.toc-ch-link'));
+  var heads=[].slice.call(document.querySelectorAll('h2[id]'));
+  function open(){ panel.classList.add('show'); scrim.classList.add('show');
+    if(fab){ fab.setAttribute('aria-expanded','true'); }
+    document.getElementById('tocClose').focus(); }
+  function shut(){ panel.classList.remove('show'); scrim.classList.remove('show');
+    if(fab){ fab.setAttribute('aria-expanded','false'); } }
+  if(fab){ fab.addEventListener('click',open); }
+  document.getElementById('tocClose').addEventListener('click',shut);
+  scrim.addEventListener('click',shut);
+  document.getElementById('tocTop').addEventListener('click',shut);
+  pbody.addEventListener('click',function(e){ if(e.target.closest('a')) shut(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') shut(); });
+
+  var last;
+  function update(){
+    var y=window.scrollY||document.documentElement.scrollTop;
+    var max=document.documentElement.scrollHeight-window.innerHeight;
+    progress.style.width=(max>0?(y/max*100):0)+'%';
+    var cur=null;
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=130) cur=heads[i].id;
+    }
+    if(cur===last) return;
+    last=cur;
+    var act=null;
+    for(var j=0;j<links.length;j++){
+      var on=links[j].getAttribute('href')==='#'+cur;
+      links[j].classList.toggle('active',on);
+      if(on&&!act) act=links[j];
+    }
+    /* 让侧栏里被高亮的那一条始终留在可视区内（已可见时不动，避免抢滚动） */
+    if(act&&sbody){
+      var r=act.getBoundingClientRect(), b=sbody.getBoundingClientRect();
+      if(r.top<b.top) sbody.scrollTop-=(b.top-r.top)+14;
+      else if(r.bottom>b.bottom) sbody.scrollTop+=(r.bottom-b.bottom)+14;
+    }
+  }
+  var ticking=false;
+  window.addEventListener('scroll',function(){
+    if(ticking) return;
+    ticking=true;
+    window.requestAnimationFrame(function(){ update(); ticking=false; });
+  },{passive:true});
+  window.addEventListener('resize',function(){ last=undefined; update(); });
+  update();
+})();
+</script>
+<!--TOC-WIDGET-END-->
+</body>
+</html>

@@ -1,6 +1,6 @@
 # 电力电子工程师技能体系
 
-一套自成体系的电力电子学习文档库。从**电路与系统分析**起步，经**功率变换 → 建模与环路 → 工程与硬件 → 合规与应用**，共 13 篇深度文档，每篇由浅入深、带算例与插图。
+一套自成体系的电力电子学习文档库。从**电路与系统分析**起步，经**功率变换 → 建模与环路 → 工程与硬件 → 合规与应用**，共 15 篇深度文档，每篇由浅入深、带算例与插图。
 
 > 入门靠拓扑，吃饭靠磁性元件和环路，上限靠器件物理和系统理解。
 
@@ -28,13 +28,15 @@ GitHub Pages 已启用，直接打开：
 | 11 | [thermal.html](thermal.html) | 热管理与散热：热阻网络 · 风冷液冷 · TIM |
 | 12 | [measurement.html](measurement.html) | 测试与测量：双脉冲 · 环路分析仪 |
 | 13 | [emc-safety.html](emc-safety.html) | EMC 与安规：CISPR · 爬电距离 · 电气间隙 |
+| 14 | [reliability.html](reliability.html) | 可靠性与寿命：降额 · MTBF · 热循环 |
+| 15 | [system-integration.html](system-integration.html) | 应用系统集成：光伏 · 储能 · OBC · 服务器电源 |
 
 ## 仓库结构
 
 ```
 PowerElectronicSkill/
 ├── index.html                    # 站点入口（总览 + 自检清单）
-├── *.html                        # 13 篇主题文档，全站相对链接，可离线双击打开
+├── *.html                        # 15 篇主题文档，全站相对链接，可离线双击打开
 ├── images/                       # 位图插图（原厂手册/应用笔记裁图）
 ├── figs/                         # 计算生成的 Bode 图等（含 gen_figs.m 生成脚本）
 ├── bode64.m / bode74.m           # MATLAB 辅助脚本
